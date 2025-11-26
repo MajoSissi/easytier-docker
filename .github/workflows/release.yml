@@ -98,6 +98,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ secrets.DOCKERHUB_USERNAME }}/easytier
           readme-filepath: ./README_DOCKERHUB.md
+
       - name: Update LAST_VERSION file
         if: steps.check_version.outputs.build == 'true'
         run: |
@@ -106,7 +107,4 @@ jobs:
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
           git add .github/state/LAST_VERSION
-          git commit -m "Update LAST_VERSION to ${{ steps.get_version.outputs.version }}"
-          git pull --rebase
-          git push --rebase
-          git push
+          git diff --staged --quiet || (git commit -m "Update LAST_VERSION to ${{ steps.get_version.outputs.version }}" && git pull --rebase && git push)

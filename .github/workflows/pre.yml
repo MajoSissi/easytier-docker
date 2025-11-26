@@ -160,6 +160,4 @@ jobs:
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
           git add .github/state/LAST_RUN_ID
-          git commit -m "Update LAST_RUN_ID to ${{ steps.get_run_id.outputs.run_id }}"
-          git pull --rebase
-          git push
+          git diff --staged --quiet || (git commit -m "Update LAST_RUN_ID to ${{ steps.get_run_id.outputs.run_id }}" && git pull --rebase && git push)
