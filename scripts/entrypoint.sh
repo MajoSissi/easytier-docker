@@ -12,7 +12,7 @@ WEB_PORT=${WEB_PORT:-11210}
 WEB_API_PORT=${WEB_API_PORT:-11211}
 WEB_SERVER_PORT=${WEB_SERVER_PORT:-22020}
 WEB_SERVER_PROTOCOL=${WEB_SERVER_PROTOCOL:-udp}
-WEB_DEFAULT_API_HOST=${WEB_DEFAULT_API_HOST:-}
+WEB_DEFAULT_API_HOST=${WEB_DEFAULT_API_HOST:-http://127.0.0.1:$WEB_API_PORT}
 WEB_DATA_DIR=${WEB_DATA_DIR:-/web}
 WEB_LOG_LEVEL=${WEB_LOG_LEVEL:-warn}
 
@@ -33,36 +33,17 @@ if [ "$WEB_ENABLE" = "true" ]; then
     fi
 
     # Get API URL
-    if [ -n "$WEB_DEFAULT_API_HOST" ]; then
-        # If user provided a value, check if it's a full URL
-        if [[ "$WEB_DEFAULT_API_HOST" == http* ]]; then
-             API_URL="$WEB_DEFAULT_API_HOST"
-        else
-             # Assume it's just an IP/Host, append port and scheme
-             API_URL="http://$WEB_DEFAULT_API_HOST:$WEB_API_PORT"
-        fi
+    if [[ "$WEB_DEFAULT_API_HOST" == http* ]]; then
+            API_URL="$WEB_DEFAULT_API_HOST"
     else
-        # Try to get local IP, fallback to 127.0.0.1
-        # Use ip route to get the IP address of the interface used for the default route
-        # Matches "src <IP>" in the output of ip route get
-        API_HOST_IP=$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1)}')
-        
-        if [ -z "$API_HOST_IP" ]; then
-            API_HOST_IP=$(hostname -i 2>/dev/null | awk '{print $1}')
-        fi
-        
-        if [ -z "$API_HOST_IP" ]; then
-            API_HOST_IP="127.0.0.1"
-        fi
-
-        API_URL="http://$API_HOST_IP:$WEB_API_PORT"
+            # Assume it's just an IP/Host, append port and scheme
+            API_URL="http://$WEB_DEFAULT_API_HOST:$WEB_API_PORT"
     fi
     
     log "Using API URL: $API_URL"
 
     $BINARY \
         -d "$WEB_DATA_DIR/et.db" \
-        --console-log-level "$WEB_LOG_LEVEL" \
         --file-log-level "$WEB_LOG_LEVEL" \
         --file-log-dir "$WEB_DATA_DIR/logs" \
         -c "$WEB_SERVER_PORT" \

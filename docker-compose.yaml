@@ -1,5 +1,6 @@
 services:
   easytier:
+    # Core + Web
     # majosissi/easytier:latest 最新发布正式版
     # majosissi/easytier:pre 最新Action构建版 (自动更新,不保证稳定性)
     image: majosissi/easytier:latest
@@ -26,13 +27,16 @@ services:
       # 默认值: udp
       - WEB_SERVER_PROTOCOL=udp
       # 设置 Web (前端) 默认连接的 (后端 API HOST) 的地址
-      # - WEB_DEFAULT_API_HOST=http://192.168.1.1:11211
+      # 默认值: http://127.0.0.1:11211
+      - WEB_DEFAULT_API_HOST=http://修改成为你的主机:11211
       # Web 数据目录 (包含数据库,日志,机器码)
       # 默认值: /web
       - WEB_DATA_DIR=/web
       # Web 服务日志级别 (off, error, warn, info, debug, trace)
       # 默认值: warn
       - WEB_LOG_LEVEL=warn
+      # 时区
+      - TZ=Asia/Shanghai
     cap_add:
       - NET_ADMIN
       - NET_RAW
