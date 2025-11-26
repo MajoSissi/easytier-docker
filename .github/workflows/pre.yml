@@ -1,0 +1,158 @@
+name: Build EasyTier Pre-release Docker Image
+
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-and-build-pre:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get latest workflow run ID
+        id: get_run_id
+        run: |
+          # Get the latest 5 successful run IDs of the 'core.yml' workflow on 'main' branch
+          RUNS=$(curl -s "https://api.github.com/repos/EasyTier/EasyTier/actions/workflows/core.yml/runs?status=success&branch=main&per_page=5")
+          
+          FOUND=false
+          
+          while read -r run_id artifacts_url; do
+            echo "Checking run $run_id..."
+            count=$(curl -s "$artifacts_url" | jq -r '.total_count')
+            if [ "$count" != "null" ] && [ "$count" -gt 0 ]; then
+              echo "Found run with artifacts: $run_id"
+              echo "run_id=$run_id" >> $GITHUB_OUTPUT
+              FOUND=true
+              break
+            else
+               echo "Run $run_id has no artifacts ($count). Skipping."
+            fi
+          done <<< $(echo "$RUNS" | jq -r '.workflow_runs[] | "\(.id) \(.artifacts_url)"')
+          
+          if [ "$FOUND" = "false" ]; then
+            echo "No run with artifacts found in the last 5 runs."
+            exit 1
+          fi
+
+      - name: Check if run ID changed
+        id: check_run_id
+        run: |
+          if [ -f LAST_RUN_ID ]; then
+            CURRENT_RUN_ID=$(cat LAST_RUN_ID)
+          else
+            CURRENT_RUN_ID=""
+          fi
+          
+          LATEST_RUN_ID="${{ steps.get_run_id.outputs.run_id }}"
+          
+          if [ "$LATEST_RUN_ID" != "$CURRENT_RUN_ID" ]; then
+            echo "New run detected: $LATEST_RUN_ID"
+            echo "build=true" >> $GITHUB_OUTPUT
+          else
+            echo "Run $LATEST_RUN_ID is already built."
+            echo "build=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download Artifacts
+        if: steps.check_run_id.outputs.build == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: EasyTier/EasyTier
+          run-id: ${{ steps.get_run_id.outputs.run_id }}
+          pattern: easytier-linux-*
+          merge-multiple: false
+          path: artifacts
+
+      - name: Prepare Artifacts
+        if: steps.check_run_id.outputs.build == 'true'
+        run: |
+          # Create directory structure for Dockerfile
+          mkdir -p binaries/amd64
+          mkdir -p binaries/arm64
+          mkdir -p binaries/arm/v7
+
+          # Move and organize binaries
+          # AMD64
+          if [ -d "artifacts/easytier-linux-x86_64" ]; then
+            cp -r artifacts/easytier-linux-x86_64/* binaries/amd64/
+          fi
+          
+          # ARM64
+          if [ -d "artifacts/easytier-linux-aarch64" ]; then
+            cp -r artifacts/easytier-linux-aarch64/* binaries/arm64/
+          fi
+          
+          # ARMv7
+          if [ -d "artifacts/easytier-linux-armv7" ]; then
+            cp -r artifacts/easytier-linux-armv7/* binaries/arm/v7/
+          fi
+
+          # Ensure executables
+          chmod +x binaries/**/* || true
+          
+          echo "Binaries structure:"
+          ls -R binaries
+
+      - name: Set up Docker Buildx
+        if: steps.check_run_id.outputs.build == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: steps.check_run_id.outputs.build == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        if: steps.check_run_id.outputs.build == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.pre
+          push: true
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/easytier:pre
+
+      - name: Generate Docker Hub README
+        if: steps.check_run_id.outputs.build == 'true'
+        shell: python
+        run: |
+          import os
+          
+          with open('docker-compose.yaml', 'r', encoding='utf-8') as f:
+              compose_content = f.read()
+          
+          new_readme = f'```yaml\n{compose_content}\n```'
+          
+          with open('README_DOCKERHUB.md', 'w', encoding='utf-8') as f:
+              f.write(new_readme)
+
+      - name: Update Docker Hub Description
+        if: steps.check_run_id.outputs.build == 'true'
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/easytier
+          readme-filepath: ./README_DOCKERHUB.md
+
+      - name: Update LAST_RUN_ID file
+        if: steps.check_run_id.outputs.build == 'true'
+        run: |
+          echo "${{ steps.get_run_id.outputs.run_id }}" > LAST_RUN_ID
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add LAST_RUN_ID
+          git commit -m "Update LAST_RUN_ID to ${{ steps.get_run_id.outputs.run_id }}"
+          git pull --rebase
+          git push
