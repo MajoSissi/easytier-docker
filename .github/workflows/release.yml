@@ -1,4 +1,4 @@
-name: Build EasyTier release Docker Image
+name: EasyTier Release Docker Image
 
 on:
   schedule:
