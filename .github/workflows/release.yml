@@ -1,0 +1,128 @@
+name: Build EasyTier release Docker Image
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to commit the version file
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lowercase Owner
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >> ${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
+
+      - name: Get latest release version
+        id: get_version
+        run: |
+          LATEST_VERSION=$(curl -s https://api.github.com/repos/EasyTier/EasyTier/releases/latest | jq -r .tag_name)
+          echo "Latest version: $LATEST_VERSION"
+          echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if version changed
+        id: check_version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "Manual trigger detected. Forcing build."
+            echo "build=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [ -f .github/state/LAST_VERSION ]; then
+            CURRENT_VERSION=$(cat .github/state/LAST_VERSION)
+          else
+            CURRENT_VERSION=""
+          fi
+          
+          LATEST_VERSION="${{ steps.get_version.outputs.version }}"
+          
+          if [ "$LATEST_VERSION" != "$CURRENT_VERSION" ]; then
+            echo "New version detected: $LATEST_VERSION"
+            echo "build=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version $LATEST_VERSION is already built."
+            echo "build=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up QEMU
+        if: steps.check_version.outputs.build == 'true'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: steps.check_version.outputs.build == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: steps.check_version.outputs.build == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        if: steps.check_version.outputs.build == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        if: steps.check_version.outputs.build == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          build-args: |
+            VERSION=${{ steps.get_version.outputs.version }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/easytier:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/easytier:${{ steps.get_version.outputs.version }}
+            ghcr.io/${{ env.OWNER_LC }}/easytier:latest
+            ghcr.io/${{ env.OWNER_LC }}/easytier:${{ steps.get_version.outputs.version }}
+
+      - name: Generate Docker Hub README
+        if: steps.check_version.outputs.build == 'true'
+        shell: python
+        run: |
+          import os
+          
+          with open('docker-compose.yaml', 'r', encoding='utf-8') as f:
+              compose_content = f.read()
+          
+          new_readme = f'```yaml\n{compose_content}\n```'
+          
+          with open('README_DOCKERHUB.md', 'w', encoding='utf-8') as f:
+              f.write(new_readme)
+
+      - name: Update Docker Hub Description
+        if: steps.check_version.outputs.build == 'true'
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/easytier
+          readme-filepath: ./README_DOCKERHUB.md
+      - name: Update LAST_VERSION file
+        if: steps.check_version.outputs.build == 'true'
+        run: |
+          mkdir -p .github/state
+          echo "${{ steps.get_version.outputs.version }}" > .github/state/LAST_VERSION
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add .github/state/LAST_VERSION
+          git commit -m "Update LAST_VERSION to ${{ steps.get_version.outputs.version }}"
+          git pull --rebase
+          git push --rebase
+          git push
