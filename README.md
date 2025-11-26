@@ -1,7 +1,7 @@
 # EasyTier Docker
 
-[![Build EasyTier release Docker Image](https://github.com/MajoSissi/easytier-docker/actions/workflows/release.yml/badge.svg)](https://github.com/MajoSissi/easytier-docker/actions/workflows/release.yml)
-[![Build EasyTier Pre-release Docker Image](https://github.com/MajoSissi/easytier-docker/actions/workflows/pre.yml/badge.svg)](https://github.com/MajoSissi/easytier-docker/actions/workflows/pre.yml)
+[![Release](https://github.com/MajoSissi/easytier-docker/actions/workflows/release.yml/badge.svg)](https://github.com/MajoSissi/easytier-docker/actions/workflows/release.yml)
+[![Pre-release](https://github.com/MajoSissi/easytier-docker/actions/workflows/pre.yml/badge.svg)](https://github.com/MajoSissi/easytier-docker/actions/workflows/pre.yml)
 
 本项目包含一个 GitHub Action 工作流，用于在 [EasyTier](https://github.com/EasyTier/EasyTier) 发布新版本时，自动构建并发布 Docker 镜像到 DockerHub。
 
