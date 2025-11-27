@@ -10,6 +10,7 @@ COPY scripts/download.sh /download.sh
 RUN apk add --no-cache curl unzip && \
     chmod +x /download.sh && \
     /download.sh "$VERSION" "$TARGETARCH" "$TARGETVARIANT" && \
+    rm -f /usr/local/bin/easytier-web && \
     apk del curl unzip
 
 COPY scripts/entrypoint.sh /entrypoint.sh

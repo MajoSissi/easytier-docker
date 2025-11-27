@@ -25,9 +25,6 @@ case $TARGETARCH in
       ARCH="arm"
     fi
     ;;
-  "mips64le")
-    ARCH="mips64el" # Guessing, need to verify if supported
-    ;;
   *)
     echo "Unsupported architecture: $TARGETARCH"
     exit 1
@@ -55,9 +52,6 @@ else
     ls -R
     exit 1
 fi
-
-# Remove easytier-web as requested
-rm -f /usr/local/bin/easytier-web
 
 rm easytier.zip
 chmod +x /usr/local/bin/easytier-core /usr/local/bin/easytier-cli
