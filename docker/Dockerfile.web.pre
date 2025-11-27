@@ -25,7 +25,7 @@ RUN set -e && \
 
 FROM alpine:latest
 
-RUN apk add --no-cache tzdata tini bash curl unzip ca-certificates gcompat libgcc libstdc++ iproute2
+RUN apk add --no-cache tzdata tini bash ca-certificates gcompat libgcc libstdc++
 
 COPY --from=builder /out/ /usr/local/bin/
 
@@ -34,11 +34,6 @@ RUN chmod +x /entrypoint.sh
 
 # Create config directory and web directory
 RUN mkdir -p /web/logs
-
-# Web ports
-EXPOSE 11210
-EXPOSE 11211
-EXPOSE 22020
 
 VOLUME /web
 
