@@ -135,6 +135,17 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/easytier:pre
 
+      - name: Build and push web
+        if: steps.check_run_id.outputs.build == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.web.pre
+          push: true
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/easytier-web:pre
+
       - name: Generate Docker Hub README
         if: steps.check_run_id.outputs.build == 'true'
         shell: python

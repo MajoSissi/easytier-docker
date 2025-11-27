@@ -76,6 +76,20 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/easytier:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/easytier:${{ steps.get_version.outputs.version }}
 
+      - name: Build and push web
+        if: steps.check_version.outputs.build == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.web
+          push: true
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          build-args: |
+            VERSION=${{ steps.get_version.outputs.version }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/easytier-web:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/easytier-web:${{ steps.get_version.outputs.version }}
+
       - name: Generate Docker Hub README
         if: steps.check_version.outputs.build == 'true'
         shell: python
