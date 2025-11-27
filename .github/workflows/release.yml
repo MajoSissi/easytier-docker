@@ -96,13 +96,15 @@ jobs:
         run: |
           import os
           
-          with open('docker-compose.yaml', 'r', encoding='utf-8') as f:
-              compose_content = f.read()
+          def generate_readme(compose_file, output_file):
+              with open(compose_file, 'r', encoding='utf-8') as f:
+                  compose_content = f.read()
+              new_readme = f'```yaml\n{compose_content}\n```'
+              with open(output_file, 'w', encoding='utf-8') as f:
+                  f.write(new_readme)
           
-          new_readme = f'```yaml\n{compose_content}\n```'
-          
-          with open('README_DOCKERHUB.md', 'w', encoding='utf-8') as f:
-              f.write(new_readme)
+          generate_readme('docker-compose.yaml', 'README_DOCKERHUB.md')
+          generate_readme('docker-compose.web.yaml', 'README_DOCKERHUB_WEB.md')
 
       - name: Update Docker Hub Description
         if: steps.check_version.outputs.build == 'true'
@@ -112,6 +114,15 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ secrets.DOCKERHUB_USERNAME }}/easytier
           readme-filepath: ./README_DOCKERHUB.md
+
+      - name: Update Docker Hub Description (Web)
+        if: steps.check_version.outputs.build == 'true'
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/easytier-web
+          readme-filepath: ./README_DOCKERHUB_WEB.md
 
       - name: Update LAST_VERSION file
         if: steps.check_version.outputs.build == 'true'

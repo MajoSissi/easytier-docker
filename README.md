@@ -21,16 +21,12 @@
 
 配置完成后，工作流将自动按计划运行。你也可以在 `Actions` 页面手动触发 `Build EasyTier release Docker Image` 工作流进行测试。
 
-## Docker 使用方法
+## Docker Compose 使用方法
 
-请参考仓库中的 [Docker Compose](docker-compose.yaml) 文件。
+### 完整版 (Core + Web)
 
-### 启动参数说明
+请参考仓库中的 [docker-compose.yaml](docker-compose.yaml) 文件。
 
-Docker 容器启动时传递的参数（`command` 部分）将直接传递给 `easytier-core`。
+### 仅 Web 版 (Web Only)
 
-例如：
-```bash
-command: -i 10.144.144.1 --network-name my-network --network-secret my-secret -p 节点服务器
-```
-等同于在命令行运行 `easytier-core -i 10.144.144.1 ...`。
+如果你只需要运行 Web 管理界面（例如连接到远程的 Core），请参考 [docker-compose.web.yaml](docker-compose.web.yaml) 文件。
