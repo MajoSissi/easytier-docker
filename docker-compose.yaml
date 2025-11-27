@@ -14,46 +14,39 @@ services:
     environment:
       # 是否启用 Web 管理界面 
       # 默认值: false
-      - WEB_ENABLE=true #[!仅Web镜像,不需要此项!]
-
+      - WEB_ENABLE=true #[!仅Web,不需要此项!]
       # 设置 Web 管理的用户名 
       # 如果设置了用户名且启用了 Web，将自动连接到本机的 Web 控制台
       # 注意：你仍需在 Web 界面手动注册该用户 (不要使用"admin"和"root")
-      - WEB_USERNAME=修改为你的用户名 #[!仅Web镜像,不需要此项!]
-
+      - WEB_USERNAME=修改为你的用户名 #[!仅Web,不需要此项!]
       # Web 管理界面 (前端) 访问端口 - http(s)://主机:此端口
       # 默认值: 11210
       - WEB_PORT=11210
-
       # Web 管理界面 (后端 API HOST) 监听端口 - http(s)://主机:此端口
       # 默认值: 11211
       - WEB_API_PORT=11211
-
       # Web 管理服务 (RPC) 监听端口，用于接收 Core 的连接
       # 默认值: 22020
       - WEB_SERVER_PORT=22020
-
       # Web 管理服务 (RPC) 协议 (tcp/udp)
       # 默认值: udp
       - WEB_SERVER_PROTOCOL=udp
-
       # 设置 Web (前端) 默认连接的 (后端 API HOST) 的地址
       # 默认值: http://127.0.0.1:11211
       - WEB_DEFAULT_API_HOST=http://修改成为你的主机:11211
-
       # Web 数据目录 (包含数据库,日志,机器码)
       # 默认值: /web
       - WEB_DATA_DIR=/web
-
       # Web 服务日志级别 (off, error, warn, info, debug, trace)
       # 默认值: warn
       - WEB_LOG_LEVEL=warn
-
       # 时区
       - TZ=Asia/Shanghai
+    # [!仅Web,不需要此项!]  
     cap_add:
       - NET_ADMIN
       - NET_RAW
+    # [!仅Web,不需要此项!]  
     devices:
       - /dev/net/tun:/dev/net/tun
     volumes:
