@@ -18,8 +18,8 @@ jobs:
       - name: Get latest workflow run ID
         id: get_run_id
         run: |
-          # Get the latest 5 successful run IDs of the 'core.yml' workflow on 'main' branch
-          RUNS=$(curl -s "https://api.github.com/repos/EasyTier/EasyTier/actions/workflows/core.yml/runs?status=success&branch=main&per_page=5")
+          # Get the latest 20 successful run IDs of the 'core.yml' workflow on 'main' branch
+          RUNS=$(curl -s "https://api.github.com/repos/EasyTier/EasyTier/actions/workflows/core.yml/runs?status=success&branch=main&per_page=20")
           
           FOUND=false
           
@@ -37,13 +37,21 @@ jobs:
           done <<< $(echo "$RUNS" | jq -r '.workflow_runs[] | "\(.id) \(.artifacts_url)"')
           
           if [ "$FOUND" = "false" ]; then
-            echo "No run with artifacts found in the last 5 runs."
-            exit 1
+            echo "No run with artifacts found in the last 20 runs."
+            exit 0
           fi
 
       - name: Check if run ID changed
         id: check_run_id
         run: |
+          LATEST_RUN_ID="${{ steps.get_run_id.outputs.run_id }}"
+          
+          if [ -z "$LATEST_RUN_ID" ]; then
+             echo "No artifacts found to build."
+             echo "build=false" >> $GITHUB_OUTPUT
+             exit 0
+          fi
+
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "Manual trigger detected. Forcing build."
             echo "build=true" >> $GITHUB_OUTPUT
@@ -55,8 +63,6 @@ jobs:
           else
             CURRENT_RUN_ID=""
           fi
-          
-          LATEST_RUN_ID="${{ steps.get_run_id.outputs.run_id }}"
           
           if [ "$LATEST_RUN_ID" != "$CURRENT_RUN_ID" ]; then
             echo "New run detected: $LATEST_RUN_ID"
