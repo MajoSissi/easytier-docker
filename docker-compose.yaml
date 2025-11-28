@@ -30,7 +30,7 @@ services:
       - WEB_SERVER_PROTOCOL=udp
       # 设置 Web (前端) 默认连接的 (后端 API HOST) 的地址
       # 默认值: http://127.0.0.1:11211
-      - WEB_DEFAULT_API_HOST=http://修改成为你的主机:11211
+      - WEB_DEFAULT_API_HOST=http://修改为你的主机:11211
       # Web 数据目录 (包含数据库,日志,机器码)
       # 默认值: /web
       - WEB_DATA_DIR=/web
