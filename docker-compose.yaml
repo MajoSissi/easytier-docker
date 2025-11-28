@@ -21,10 +21,10 @@ services:
       # 设置 Web (前端) 默认连接的 (后端 API HOST) - 访问地址: http://主机:11211
       # 默认值: http://127.0.0.1:11211
       - WEB_DEFAULT_API_HOST=http://修改为你的主机:11211
-      # Web 管理界面 (前端) 访问端口 - http://主机:11210
-      # 默认值: 11210
-      - WEB_PORT=11210
-      # Web 管理界面 (后端 API HOST) 监听端口 - http://主机:11211
+      # Web 管理界面 (前端) 访问端口
+      # 默认值: 11211
+      - WEB_PORT=11211
+      # Web 管理界面 (后端 API HOST) 监听端口 - [可以和前端同端口]
       # 默认值: 11211
       - WEB_API_PORT=11211
       # Web 管理服务 (RPC) 监听端口，用于接收 Core 的连接

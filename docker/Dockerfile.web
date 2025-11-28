@@ -7,19 +7,17 @@ ARG TARGETVARIANT
 RUN apk add --no-cache tzdata tini bash ca-certificates gcompat libgcc libstdc++
 
 COPY scripts/download.sh /download.sh
-RUN apk add --no-cache curl unzip && \
+RUN apk add --no-cache --virtual .dl-deps curl unzip && \
     chmod +x /download.sh && \
     /download.sh "$VERSION" "$TARGETARCH" "$TARGETVARIANT" && \
     rm -f /download.sh /usr/local/bin/easytier-core /usr/local/bin/easytier-cli /usr/local/bin/easytier-web && \
-    apk del curl unzip
+    apk del .dl-deps
 
-COPY scripts/entrypoint_web.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY --chmod=755 scripts/entrypoint_web.sh /usr/local/bin/entrypoint.sh
 
 # Create config directory and web directory
-RUN mkdir -p /web/logs
+RUN mkdir -p /web/logs /config
 
-VOLUME /web
+VOLUME /web /config
 
-ENTRYPOINT ["/sbin/tini", "--", "/entrypoint.sh"]
-CMD [""]
+ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/entrypoint.sh"]

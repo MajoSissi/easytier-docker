@@ -92,19 +92,9 @@ jobs:
 
       - name: Generate Docker Hub README
         if: steps.check_version.outputs.build == 'true'
-        shell: python
         run: |
-          import os
-          
-          def generate_readme(compose_file, output_file):
-              with open(compose_file, 'r', encoding='utf-8') as f:
-                  compose_content = f.read()
-              new_readme = f'```yaml\n{compose_content}\n```'
-              with open(output_file, 'w', encoding='utf-8') as f:
-                  f.write(new_readme)
-          
-          generate_readme('docker-compose.yaml', 'README_DOCKERHUB.md')
-          generate_readme('docker-compose.web.yaml', 'README_DOCKERHUB_WEB.md')
+          python scripts/generate_readme.py docker-compose.yaml README_DOCKERHUB.md
+          python scripts/generate_readme.py docker-compose.web.yaml README_DOCKERHUB_WEB.md
 
       - name: Update Docker Hub Description
         if: steps.check_version.outputs.build == 'true'

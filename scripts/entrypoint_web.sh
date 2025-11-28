@@ -5,6 +5,16 @@ log() {
   echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
 }
 
+format_cmd() {
+  local cmd=$1
+  shift || true
+  printf '%s' "$cmd"
+  local arg
+  for arg in "$@"; do
+    printf ' %q' "$arg"
+  done
+}
+
 # Default values
 WEB_PORT=${WEB_PORT:-11211}
 WEB_API_PORT=${WEB_API_PORT:-11211}
@@ -16,6 +26,16 @@ WEB_DATA_DIR=${WEB_DATA_DIR:-/web}
 
 # Ensure web directory exists
 mkdir -p "$WEB_DATA_DIR/logs"
+
+WEB_EXTRA_ARGS=()
+if [ "$#" -gt 0 ]; then
+  if [ "${1#-}" = "$1" ]; then
+    log "[Web] Custom command detected: $*"
+    exec "$@"
+  else
+    WEB_EXTRA_ARGS=("$@")
+  fi
+fi
 
 log "[Web] Starting easytier-web-embed..."
 
@@ -49,6 +69,10 @@ WEB_ARGS=(
   --api-host "$API_URL"
 )
 
-log "[Web] Executing command: $BINARY ${WEB_ARGS[*]}"
+if [ ${#WEB_EXTRA_ARGS[@]} -gt 0 ]; then
+  WEB_ARGS+=("${WEB_EXTRA_ARGS[@]}")
+fi
 
-exec $BINARY "${WEB_ARGS[@]}"
+log "[Web] Executing command: $(format_cmd "$BINARY" "${WEB_ARGS[@]}")"
+
+exec "$BINARY" "${WEB_ARGS[@]}"

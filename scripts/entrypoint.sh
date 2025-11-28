@@ -5,6 +5,16 @@ log() {
   echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
 }
 
+format_cmd() {
+  local cmd=$1
+  shift || true
+  printf '%s' "$cmd"
+  local arg
+  for arg in "$@"; do
+    printf ' %q' "$arg"
+  done
+}
+
 # Default values
 WEB_ENABLE=${WEB_ENABLE:-false}
 WEB_USERNAME=${WEB_USERNAME:-}
@@ -20,6 +30,16 @@ WEB_DATA_DIR=${WEB_DATA_DIR:-/web}
 mkdir -p "$WEB_DATA_DIR/logs"
 if [ -n "$CONFIG_DIR" ]; then
   mkdir -p "$CONFIG_DIR"
+fi
+
+CORE_EXTRA_ARGS=()
+if [ "$#" -gt 0 ]; then
+  if [ "${1#-}" = "$1" ]; then
+    log "[Core] Custom command detected: $*"
+    exec "$@"
+  else
+    CORE_EXTRA_ARGS=("$@")
+  fi
 fi
 
 if [ "$WEB_ENABLE" = "true" ]; then
@@ -54,7 +74,7 @@ if [ "$WEB_ENABLE" = "true" ]; then
     --api-host "$API_URL"
   )
 
-  log "[Web] Executing command: $BINARY ${WEB_ARGS[*]}"
+  log "[Web] Executing command: $(format_cmd "$BINARY" "${WEB_ARGS[@]}")"
 
   $BINARY "${WEB_ARGS[@]}" &
 
@@ -65,11 +85,9 @@ fi
 log "[Core] Starting easytier-core..."
 
 ARGS=()
-for arg in "$@"; do
-  if [ -n "$arg" ]; then
-      ARGS+=("$arg")
-  fi
-done
+if [ ${#CORE_EXTRA_ARGS[@]} -gt 0 ]; then
+  ARGS+=("${CORE_EXTRA_ARGS[@]}")
+fi
 
 if [ "$WEB_ENABLE" = "true" ]; then
   if [ -n "$WEB_USERNAME" ]; then
@@ -90,6 +108,6 @@ if [ -n "$CONFIG_DIR" ]; then
   ARGS+=("--config-dir" "$CONFIG_DIR")
 fi
 
-log "[Core] Executing command: easytier-core ${ARGS[*]}"
+log "[Core] Executing command: $(format_cmd easytier-core "${ARGS[@]}")"
 
 exec easytier-core "${ARGS[@]}"
