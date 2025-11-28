@@ -1,21 +1,17 @@
-FROM alpine:latest AS builder
+FROM alpine:latest
 
 ARG VERSION
 ARG TARGETARCH
 ARG TARGETVARIANT
 
-COPY scripts/download.sh /download.sh
-RUN chmod +x /download.sh
-RUN apk add --no-cache curl unzip && \
-    /download.sh "$VERSION" "$TARGETARCH" "$TARGETVARIANT" && \
-    rm /download.sh && \
-    rm -f /usr/local/bin/easytier-web
-
-FROM alpine:latest
-
 RUN apk add --no-cache tzdata tini bash ca-certificates gcompat libgcc libstdc++
 
-COPY --from=builder /usr/local/bin/ /usr/local/bin/
+COPY scripts/download.sh /download.sh
+RUN apk add --no-cache curl unzip && \
+    chmod +x /download.sh && \
+    /download.sh "$VERSION" "$TARGETARCH" "$TARGETVARIANT" && \
+    rm -f /download.sh /usr/local/bin/easytier-web && \
+    apk del curl unzip
 
 COPY scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
