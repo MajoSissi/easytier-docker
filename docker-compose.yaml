@@ -16,10 +16,10 @@ services:
       # 如果设置了用户名且启用了 Web，将自动连接到本机的 Web 控制台
       # 注意：你仍需在 Web 界面手动注册该用户 (不要使用"admin"和"root")
       - WEB_USERNAME=修改为你的用户名
-      # Web 管理界面 (前端) 访问端口 - http(s)://主机:此端口
+      # Web 管理界面 (前端) 访问端口 - http://主机:11210
       # 默认值: 11210
       - WEB_PORT=11210
-      # Web 管理界面 (后端 API HOST) 监听端口 - http(s)://主机:此端口
+      # Web 管理界面 (后端 API HOST) 监听端口 - http://主机:11211
       # 默认值: 11211
       - WEB_API_PORT=11211
       # Web 管理服务 (RPC) 监听端口，用于接收 Core 的连接
