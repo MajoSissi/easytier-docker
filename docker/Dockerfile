@@ -5,8 +5,8 @@ ARG TARGETARCH
 ARG TARGETVARIANT
 
 COPY scripts/download.sh /download.sh
+RUN chmod +x /download.sh
 RUN apk add --no-cache curl unzip && \
-    chmod +x /download.sh && \
     /download.sh "$VERSION" "$TARGETARCH" "$TARGETVARIANT" && \
     rm /download.sh && \
     rm -f /usr/local/bin/easytier-web
