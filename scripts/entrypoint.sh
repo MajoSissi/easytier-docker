@@ -23,13 +23,13 @@ if [ -n "$CONFIG_DIR" ]; then
 fi
 
 if [ "$WEB_ENABLE" = "true" ]; then
-  log "Starting easytier-web-embed..."
+  log "[Web] Starting easytier-web-embed..."
   
   # Check if easytier-web-embed exists
   if command -v easytier-web-embed &> /dev/null; then
     BINARY=easytier-web-embed
   else
-    log "Error: easytier-web-embed binary not found."
+    log "[Web] Error: easytier-web-embed binary not found."
     exit 1
   fi
 
@@ -41,23 +41,28 @@ if [ "$WEB_ENABLE" = "true" ]; then
     API_URL="http://$WEB_DEFAULT_API_HOST:$WEB_API_PORT"
   fi
   
-  log "Using API URL: $API_URL"
+  log "[Web] Using API URL: $API_URL"
 
-  $BINARY \
-    -d "$WEB_DATA_DIR/et.db" \
-    --file-log-level "$WEB_LOG_LEVEL" \
-    --file-log-dir "$WEB_DATA_DIR/logs" \
-    -c "$WEB_SERVER_PORT" \
-    -p "$WEB_SERVER_PROTOCOL" \
-    -a "$WEB_API_PORT" \
-    -l "$WEB_PORT" \
-    --api-host "$API_URL" &
+  WEB_ARGS=(
+    -d "$WEB_DATA_DIR/et.db"
+    --file-log-level "$WEB_LOG_LEVEL"
+    --file-log-dir "$WEB_DATA_DIR/logs"
+    -c "$WEB_SERVER_PORT"
+    -p "$WEB_SERVER_PROTOCOL"
+    -a "$WEB_API_PORT"
+    -l "$WEB_PORT"
+    --api-host "$API_URL"
+  )
+
+  log "[Web] Executing command: $BINARY ${WEB_ARGS[*]}"
+
+  $BINARY "${WEB_ARGS[@]}" &
 
   WEB_PID=$!
-  log "easytier-web-embed started with PID $WEB_PID"
+  log "[Web] easytier-web-embed started with PID $WEB_PID"
 fi
 
-log "Starting easytier-core..."
+log "[Core] Starting easytier-core..."
 
 ARGS=()
 for arg in "$@"; do
@@ -73,16 +78,18 @@ if [ "$WEB_ENABLE" = "true" ]; then
 
   MACHINE_ID_FILE="$WEB_DATA_DIR/et_machine_id"
   if [ ! -f "$MACHINE_ID_FILE" ]; then
-      log "Generating new machine ID..."
+      log "[Core] Generating new machine ID..."
       cat /proc/sys/kernel/random/uuid > "$MACHINE_ID_FILE"
   fi
   MACHINE_ID=$(cat "$MACHINE_ID_FILE")
-  log "Using machine ID: $MACHINE_ID"
+  log "[Core] Using machine ID: $MACHINE_ID"
   ARGS+=("--machine-id" "$MACHINE_ID")
 fi
 
 if [ -n "$CONFIG_DIR" ]; then
   ARGS+=("--config-dir" "$CONFIG_DIR")
 fi
+
+log "[Core] Executing command: easytier-core ${ARGS[*]}"
 
 exec easytier-core "${ARGS[@]}"

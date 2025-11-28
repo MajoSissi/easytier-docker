@@ -17,13 +17,13 @@ WEB_DATA_DIR=${WEB_DATA_DIR:-/web}
 # Ensure web directory exists
 mkdir -p "$WEB_DATA_DIR/logs"
 
-log "Starting easytier-web-embed..."
+log "[Web] Starting easytier-web-embed..."
 
 # Check if easytier-web-embed exists
 if command -v easytier-web-embed &> /dev/null; then
   BINARY=easytier-web-embed
 else
-  log "Error: easytier-web-embed binary not found."
+  log "[Web] Error: easytier-web-embed binary not found."
   exit 1
 fi
 
@@ -35,15 +35,20 @@ else
   API_URL="http://$WEB_DEFAULT_API_HOST:$WEB_API_PORT"
 fi
 
-log "Using API URL: $API_URL"
+log "[Web] Using API URL: $API_URL"
 
-exec $BINARY \
-  -d "$WEB_DATA_DIR/et.db" \
-  --console-log-level "$WEB_LOG_LEVEL" \
-  --file-log-level "$WEB_LOG_LEVEL" \
-  --file-log-dir "$WEB_DATA_DIR/logs" \
-  -c "$WEB_SERVER_PORT" \
-  -p "$WEB_SERVER_PROTOCOL" \
-  -a "$WEB_API_PORT" \
-  -l "$WEB_PORT" \
+WEB_ARGS=(
+  -d "$WEB_DATA_DIR/et.db"
+  --console-log-level "$WEB_LOG_LEVEL"
+  --file-log-level "$WEB_LOG_LEVEL"
+  --file-log-dir "$WEB_DATA_DIR/logs"
+  -c "$WEB_SERVER_PORT"
+  -p "$WEB_SERVER_PROTOCOL"
+  -a "$WEB_API_PORT"
+  -l "$WEB_PORT"
   --api-host "$API_URL"
+)
+
+log "[Web] Executing command: $BINARY ${WEB_ARGS[*]}"
+
+exec $BINARY "${WEB_ARGS[@]}"
