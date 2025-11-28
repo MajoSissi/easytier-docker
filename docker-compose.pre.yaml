@@ -9,6 +9,8 @@ services:
     restart: always
     network_mode: host
     environment:
+      # 时区
+      - TZ=Asia/Shanghai
       # 是否启用 Web 管理界面 
       # 默认值: false
       - WEB_ENABLE=true
@@ -41,8 +43,6 @@ services:
       # 配置文件存储目录 (将toml格式文件配置放在此目录,每个文件就是一个实例,会自动运行,会连接到Web可修改)
       # 默认值: 无 (即不存储在本地)
       - CONFIG_DIR=/config
-      # 时区
-      - TZ=Asia/Shanghai
     cap_add:
       - NET_ADMIN
       - NET_RAW

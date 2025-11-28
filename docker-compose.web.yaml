@@ -12,6 +12,8 @@ services:
       - 11211:11211
       - 22020:22020
     environment:
+      # 时区
+      - TZ=Asia/Shanghai
       # Web 管理界面 (前端) 访问端口 - http://主机:11211
       # 默认值: 11211
       - WEB_PORT=11211
@@ -34,7 +36,5 @@ services:
       # Web 数据目录 (包含数据库,日志)
       # 默认值: /web
       - WEB_DATA_DIR=/web
-      # 时区
-      - TZ=Asia/Shanghai
     volumes:
       - ./web:/web

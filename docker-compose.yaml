@@ -9,6 +9,8 @@ services:
     restart: always
     network_mode: host
     environment:
+      # 时区
+      - TZ=Asia/Shanghai
       # 是否启用 Web 管理界面 
       # 默认值: false
       - WEB_ENABLE=true
@@ -38,8 +40,6 @@ services:
       # Web 数据目录 (包含数据库,日志,机器码)
       # 默认值: /web
       - WEB_DATA_DIR=/web
-      # 时区
-      - TZ=Asia/Shanghai
     cap_add:
       - NET_ADMIN
       - NET_RAW
