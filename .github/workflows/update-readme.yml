@@ -1,0 +1,33 @@
+name: Update README with Compose Content
+
+on:
+  push:
+    paths:
+      - 'compose/docker-compose.yaml'
+      - 'compose/docker-compose.web.yaml'
+      - 'scripts/generate_readme.sh'
+      - 'README.md'
+  workflow_dispatch:
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update README.md
+        run: |
+          chmod +x scripts/generate_readme.sh
+          ./scripts/generate_readme.sh compose/docker-compose.yaml --update README.md --marker COMPOSE_CORE
+          ./scripts/generate_readme.sh compose/docker-compose.web.yaml --update README.md --marker COMPOSE_WEB
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add README.md
+          git diff --staged --quiet || (git commit -m "docs: auto-update README with latest compose content" && git push)

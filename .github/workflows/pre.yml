@@ -1,0 +1,175 @@
+name: EasyTier Pre-release Docker Image
+#  `DOCKERHUB_USERNAME`: DockerHub 用户名
+#  `DOCKERHUB_TOKEN`: DockerHub Access Token
+
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-and-build-pre:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find latest EasyTier run with artifacts
+        id: get_run_id
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = 'EasyTier';
+            const repo = 'EasyTier';
+            const { data } = await github.rest.actions.listWorkflowRuns({
+              owner,
+              repo,
+              workflow_id: 'core.yml',
+              branch: 'main',
+              status: 'success',
+              per_page: 20
+            });
+
+            let runId = '';
+            for (const run of data.workflow_runs) {
+              core.info(`Checking run ${run.id}...`);
+              const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+                owner,
+                repo,
+                run_id: run.id,
+                per_page: 1
+              });
+              if (artifacts.data.total_count > 0) {
+                core.info(`Found artifacts in run ${run.id}`);
+                runId = String(run.id);
+                break;
+              }
+              core.info(`Run ${run.id} has no artifacts.`);
+            }
+
+            core.setOutput('run_id', runId);
+
+      - name: Check if run ID changed
+        id: check_run_id
+        run: |
+          LATEST_RUN_ID="${{ steps.get_run_id.outputs.run_id }}"
+          
+          if [ -z "$LATEST_RUN_ID" ]; then
+             echo "No artifacts found to build."
+             echo "build=false" >> $GITHUB_OUTPUT
+             exit 0
+          fi
+
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "Manual trigger detected. Forcing build."
+            echo "build=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [ -f .github/state/LAST_RUN_ID ]; then
+            CURRENT_RUN_ID=$(cat .github/state/LAST_RUN_ID)
+          else
+            CURRENT_RUN_ID=""
+          fi
+          
+          if [ "$LATEST_RUN_ID" != "$CURRENT_RUN_ID" ]; then
+            echo "New run detected: $LATEST_RUN_ID"
+            echo "build=true" >> $GITHUB_OUTPUT
+          else
+            echo "Run $LATEST_RUN_ID is already built."
+            echo "build=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download Artifacts
+        if: steps.check_run_id.outputs.build == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: EasyTier/EasyTier
+          run-id: ${{ steps.get_run_id.outputs.run_id }}
+          pattern: easytier-linux-*
+          merge-multiple: false
+          path: artifacts
+
+      - name: Prepare Artifacts
+        if: steps.check_run_id.outputs.build == 'true'
+        run: |
+          # Create directory structure for Dockerfile
+          mkdir -p binaries/amd64
+          mkdir -p binaries/arm64
+          mkdir -p binaries/arm/v7
+
+          # Move and organize binaries
+          # AMD64
+          if [ -d "artifacts/easytier-linux-x86_64" ]; then
+            cp -r artifacts/easytier-linux-x86_64/* binaries/amd64/
+          fi
+          
+          # ARM64
+          if [ -d "artifacts/easytier-linux-aarch64" ]; then
+            cp -r artifacts/easytier-linux-aarch64/* binaries/arm64/
+          fi
+          
+          # ARMv7
+          if [ -d "artifacts/easytier-linux-armv7" ]; then
+            cp -r artifacts/easytier-linux-armv7/* binaries/arm/v7/
+          fi
+
+          # Ensure executables
+          chmod +x binaries/**/* || true
+          
+          echo "Binaries structure:"
+          ls -R binaries
+
+      - name: Set up QEMU
+        if: steps.check_run_id.outputs.build == 'true'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: steps.check_run_id.outputs.build == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: steps.check_run_id.outputs.build == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        if: steps.check_run_id.outputs.build == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.pre
+          push: true
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/easytier:pre
+
+      - name: Build and push web
+        if: steps.check_run_id.outputs.build == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.web.pre
+          push: true
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/easytier-web:pre
+
+      - name: Update LAST_RUN_ID file
+        if: steps.check_run_id.outputs.build == 'true'
+        run: |
+          mkdir -p .github/state
+          echo "${{ steps.get_run_id.outputs.run_id }}" > .github/state/LAST_RUN_ID
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add .github/state/LAST_RUN_ID
+          git diff --staged --quiet || (git commit -m "Update LAST_RUN_ID to ${{ steps.get_run_id.outputs.run_id }}" && git pull --rebase && git push)
+          git add .github/state/LAST_RUN_ID
+          git diff --staged --quiet || (git commit -m "Update LAST_RUN_ID to ${{ steps.get_run_id.outputs.run_id }}" && git pull --rebase && git push)

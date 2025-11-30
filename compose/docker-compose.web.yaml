@@ -1,0 +1,39 @@
+# 仅 Web控制台 [https://hub.docker.com/r/majosissi/easytier-web]
+services:
+  easytier-web:
+    # majosissi/easytier-web:latest 最新发布正式版
+    # majosissi/easytier-web:pre 最新Action构建版 (自动更新,不保证稳定性)
+    image: majosissi/easytier-web:latest
+    container_name: easytier-web
+    restart: always
+    network_mode: bridge
+    ports:
+      - 11211:11211
+      - 22020:22020
+    environment:
+      # 时区
+      - TZ=Asia/Shanghai
+      # 设置 Web (前端) 默认连接的 (后端 API HOST) - 访问地址: http://主机:11211
+      # 默认值: http://127.0.0.1:11211
+      - WEB_DEFAULT_API_HOST=http://修改为你的主机:11211
+      # Web 管理界面 (前端) 访问端口
+      # 默认值: 11211
+      - WEB_PORT=11211
+      # Web 管理界面 (后端 API HOST) 监听端口 - [可以和前端同端口]
+      # 默认值: 11211
+      - WEB_API_PORT=11211
+      # Web 管理服务 (RPC) 监听端口，用于接收 Core 的连接
+      # 默认值: 22020
+      - WEB_SERVER_PORT=22020
+      # 其他节点连接参数 [-w udp://主机:22020/用户名] - [-w 协议(WEB_SERVER_PROTOCOL)://主机:端口(WEB_SERVER_PORT)/用户名]
+      # Web 管理服务 (RPC) 协议 (tcp/udp)
+      # 默认值: udp
+      - WEB_SERVER_PROTOCOL=udp
+      # Web 服务日志级别 (off, error, warn, info, debug, trace)
+      # 默认值: warn
+      - WEB_LOG_LEVEL=warn
+      # Web 数据目录 (包含数据库,日志)
+      # 默认值: /web
+      - WEB_DATA_DIR=/web
+    volumes:
+      - ./web:/web

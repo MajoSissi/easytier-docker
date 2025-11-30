@@ -1,0 +1,128 @@
+name: EasyTier Release Docker Image
+#  `DOCKERHUB_USERNAME`: DockerHub 用户名
+#  `DOCKERHUB_TOKEN`: DockerHub Access Token
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get latest release version
+        id: get_version
+        run: |
+          LATEST_VERSION=$(curl -s https://api.github.com/repos/EasyTier/EasyTier/releases/latest | jq -r .tag_name)
+          echo "Latest version: $LATEST_VERSION"
+          echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if version changed
+        id: check_version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "Manual trigger detected. Forcing build."
+            echo "build=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [ -f .github/state/LAST_VERSION ]; then
+            CURRENT_VERSION=$(cat .github/state/LAST_VERSION)
+          else
+            CURRENT_VERSION=""
+          fi
+          
+          LATEST_VERSION="${{ steps.get_version.outputs.version }}"
+          
+          if [ "$LATEST_VERSION" != "$CURRENT_VERSION" ]; then
+            echo "New version detected: $LATEST_VERSION"
+            echo "build=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version $LATEST_VERSION is already built."
+            echo "build=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up QEMU
+        if: steps.check_version.outputs.build == 'true'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: steps.check_version.outputs.build == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: steps.check_version.outputs.build == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        if: steps.check_version.outputs.build == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          build-args: |
+            VERSION=${{ steps.get_version.outputs.version }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/easytier:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/easytier:${{ steps.get_version.outputs.version }}
+
+      - name: Build and push web
+        if: steps.check_version.outputs.build == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.web
+          push: true
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          build-args: |
+            VERSION=${{ steps.get_version.outputs.version }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/easytier-web:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/easytier-web:${{ steps.get_version.outputs.version }}
+
+      - name: Generate README content
+        if: steps.check_version.outputs.build == 'true'
+        run: |
+          chmod +x scripts/generate_readme.sh
+          ./scripts/generate_readme.sh compose/docker-compose.yaml --update README.md --marker COMPOSE_CORE
+          ./scripts/generate_readme.sh compose/docker-compose.web.yaml --update README.md --marker COMPOSE_WEB
+
+      - name: Update Docker Hub Description
+        if: steps.check_version.outputs.build == 'true'
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/easytier
+          readme-filepath: ./README.md
+
+      - name: Update Docker Hub Description (Web)
+        if: steps.check_version.outputs.build == 'true'
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/easytier-web
+          readme-filepath: ./README.md
+
+      - name: Update LAST_VERSION file
+        if: steps.check_version.outputs.build == 'true'
+        run: |
+          mkdir -p .github/state
+          echo "${{ steps.get_version.outputs.version }}" > .github/state/LAST_VERSION
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add .github/state/LAST_VERSION
+          git diff --staged --quiet || (git commit -m "Update LAST_VERSION to ${{ steps.get_version.outputs.version }}" && git pull --rebase && git push)

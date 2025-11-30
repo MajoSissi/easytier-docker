@@ -1,0 +1,39 @@
+FROM alpine:latest AS builder
+
+ARG TARGETARCH
+ARG TARGETVARIANT
+
+COPY binaries/ /tmp/binaries/
+
+RUN set -e && \
+    mkdir -p /out && \
+    if [ -n "$TARGETVARIANT" ]; then \
+        DIR="/tmp/binaries/${TARGETARCH}/${TARGETVARIANT}"; \
+    else \
+        DIR="/tmp/binaries/${TARGETARCH}"; \
+    fi && \
+    echo "Installing binaries from $DIR" && \
+    if [ -d "$DIR" ]; then \
+        cp "$DIR"/* /out/; \
+    else \
+        echo "Error: Binaries for ${TARGETARCH}${TARGETVARIANT:+/${TARGETVARIANT}} not found in $DIR"; \
+        ls -R /tmp/binaries; \
+        exit 1; \
+    fi && \
+    rm -f /out/easytier-web && \
+    chmod +x /out/easytier*
+
+FROM alpine:latest
+
+RUN apk add --no-cache tzdata tini bash ca-certificates gcompat libgcc libstdc++
+
+COPY --from=builder /out/ /usr/local/bin/
+
+COPY --chmod=755 scripts/run.sh /run.sh
+
+# Create config directory and web directory
+RUN mkdir -p /web/logs /config
+
+VOLUME /web /config
+
+ENTRYPOINT ["/sbin/tini", "--", "/run.sh"]

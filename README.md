@@ -1,0 +1,116 @@
+# EasyTier Docker
+
+[![Release](https://github.com/MajoSissi/easytier-docker/actions/workflows/release.yml/badge.svg)](https://github.com/MajoSissi/easytier-docker/actions/workflows/release.yml)
+[![Pre-release](https://github.com/MajoSissi/easytier-docker/actions/workflows/pre.yml/badge.svg)](https://github.com/MajoSissi/easytier-docker/actions/workflows/pre.yml)
+
+[EasyTier](https://github.com/EasyTier/EasyTier) 发布新版本时，自动构建并发布 Docker 镜像
+
+## Docker Compose 使用方法
+
+### 完整版 ( Core组网 + Web控制台 )
+
+<!-- BEGIN_COMPOSE_CORE -->
+```yaml
+# 完整 Core + Web [https://hub.docker.com/r/majosissi/easytier]
+# 仅 Web [https://hub.docker.com/r/majosissi/easytier-web]
+services:
+  easytier:
+    # majosissi/easytier:latest 最新发布正式版
+    # majosissi/easytier:pre 最新Action构建版 (自动更新,不保证稳定性)
+    image: majosissi/easytier:latest
+    container_name: easytier
+    restart: always
+    network_mode: host
+    environment:
+      # 时区
+      - TZ=Asia/Shanghai
+      # 是否启用 Web 管理界面 
+      # 默认值: false
+      - WEB_ENABLE=true
+      # 设置 Web 管理的用户名 
+      # 如果设置了用户名且启用了 Web，将自动连接到本机的 Web 控制台
+      # 注意：你仍需在 Web 界面手动注册该用户 (不要使用"admin"和"root")
+      - WEB_USERNAME=修改为你的用户名
+      # 设置 Web (前端) 默认连接的 (后端 API HOST) - 访问地址: http://主机:11211
+      # 默认值: http://127.0.0.1:11211
+      - WEB_DEFAULT_API_HOST=http://修改为你的主机:11211
+      # Web 管理界面 (前端) 访问端口
+      # 默认值: 11211
+      - WEB_PORT=11211
+      # Web 管理界面 (后端 API HOST) 监听端口 - [可以和前端同端口]
+      # 默认值: 11211
+      - WEB_API_PORT=11211
+      # Web 管理服务 (RPC) 监听端口，用于接收 Core 的连接
+      # 默认值: 22020
+      - WEB_SERVER_PORT=22020
+      # 其他节点连接此控制台参数 [-w udp://主机:22020/用户名] - [-w 协议(WEB_SERVER_PROTOCOL)://主机:端口(WEB_SERVER_PORT)/用户名]
+      # Web 管理服务 (RPC) 协议 (tcp/udp) 
+      # 默认值: udp
+      - WEB_SERVER_PROTOCOL=udp
+      # Web 服务日志级别 (off, error, warn, info, debug, trace)
+      # 默认值: warn
+      - WEB_LOG_LEVEL=warn
+      # Web 数据目录 (包含数据库,日志,机器码)
+      # 默认值: /web
+      - WEB_DATA_DIR=/web
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    volumes:
+      - ./web:/web
+      # 配置文件目录可自定义 (非必要,除非用配置文件运行)
+      # - ./config:/config
+    # 如果启用了 Web 且设置了用户名, 不用设置 command, 直接用 Web 控制台管理
+    # command 为 easytier-core 命令的参数
+    # command: -i 10.126.126.1 --network-name my-network --network-secret my-secret -p 节点服务器
+```
+<!-- END_COMPOSE_CORE -->
+
+### 仅Web版 ( Web控制台 )
+
+<!-- BEGIN_COMPOSE_WEB -->
+```yaml
+# 仅 Web [https://hub.docker.com/r/majosissi/easytier-web]
+# 完整 Core + Web [https://hub.docker.com/r/majosissi/easytier]
+services:
+  easytier-web:
+    # majosissi/easytier-web:latest 最新发布正式版
+    # majosissi/easytier-web:pre 最新Action构建版 (自动更新,不保证稳定性)
+    image: majosissi/easytier-web:latest
+    container_name: easytier-web
+    restart: always
+    network_mode: bridge
+    ports:
+      - 11211:11211
+      - 22020:22020
+    environment:
+      # 时区
+      - TZ=Asia/Shanghai
+      # 设置 Web (前端) 默认连接的 (后端 API HOST) - 访问地址: http://主机:11211
+      # 默认值: http://127.0.0.1:11211
+      - WEB_DEFAULT_API_HOST=http://修改为你的主机:11211
+      # Web 管理界面 (前端) 访问端口
+      # 默认值: 11211
+      - WEB_PORT=11211
+      # Web 管理界面 (后端 API HOST) 监听端口 - [可以和前端同端口]
+      # 默认值: 11211
+      - WEB_API_PORT=11211
+      # Web 管理服务 (RPC) 监听端口，用于接收 Core 的连接
+      # 默认值: 22020
+      - WEB_SERVER_PORT=22020
+      # 其他节点连接参数 [-w udp://主机:22020/用户名] - [-w 协议(WEB_SERVER_PROTOCOL)://主机:端口(WEB_SERVER_PORT)/用户名]
+      # Web 管理服务 (RPC) 协议 (tcp/udp)
+      # 默认值: udp
+      - WEB_SERVER_PROTOCOL=udp
+      # Web 服务日志级别 (off, error, warn, info, debug, trace)
+      # 默认值: warn
+      - WEB_LOG_LEVEL=warn
+      # Web 数据目录 (包含数据库,日志)
+      # 默认值: /web
+      - WEB_DATA_DIR=/web
+    volumes:
+      - ./web:/web
+```
+<!-- END_COMPOSE_WEB -->
