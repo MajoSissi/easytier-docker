@@ -11,8 +11,7 @@
 
 <!-- BEGIN_COMPOSE_CORE -->
 ```yaml
-# 完整 Core + Web [https://hub.docker.com/r/majosissi/easytier]
-# 仅 Web [https://hub.docker.com/r/majosissi/easytier-web]
+# 完整 Core组网 + Web控制台 [https://hub.docker.com/r/majosissi/easytier]
 services:
   easytier:
     # majosissi/easytier:latest 最新发布正式版
@@ -72,8 +71,7 @@ services:
 
 <!-- BEGIN_COMPOSE_WEB -->
 ```yaml
-# 仅 Web [https://hub.docker.com/r/majosissi/easytier-web]
-# 完整 Core + Web [https://hub.docker.com/r/majosissi/easytier]
+# 仅 Web控制台 [https://hub.docker.com/r/majosissi/easytier-web]
 services:
   easytier-web:
     # majosissi/easytier-web:latest 最新发布正式版
