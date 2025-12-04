@@ -2,7 +2,7 @@
 services:
   easytier:
     # majosissi/easytier:latest 最新发布正式版
-    # majosissi/easytier:pre 最新Action构建版 (自动更新,不保证稳定性)
+    # majosissi/easytier:pre 最新Action构建版 (自动更新, 不保证稳定性)
     image: majosissi/easytier:pre
     container_name: easytier
     restart: always
@@ -13,11 +13,17 @@ services:
       # 是否启用 Web 管理界面 
       # 默认值: false
       - WEB_ENABLE=true
-      # 设置 Web 管理的用户名 
-      # 如果设置了用户名且启用了 Web，将自动连接到本机的 Web 控制台
+      # 远程 Web 服务 URL (直接连接远程 Web 控制台)
+      # 当设置此变量时, WEB_USERNAME 将被忽略 (不可以同时链接多个 Web, 但仍然可以启用本地 Web 控制台)
+      # 示例值: udp://api.web.com:22020/username
+      # 默认值: 无
+      # - WEB_REMOTE_API=协议://主机:端口/用户名
+      # 设置 Web 管理的用户名 - 当设置了 WEB_REMOTE_API, 此变量无效
+      # 如果设置了用户名且启用了 Web, 将自动连接到本机的 Web 控制台
       # 注意：你仍需在 Web 界面手动注册该用户 (不要使用"admin"和"root")
+      # 默认值: 无
       - WEB_USERNAME=修改为你的用户名
-      # 设置 Web (前端) 默认连接的 (后端 API HOST) - 访问地址: http://主机:11211
+      # 设置 Web (前端) 默认连接的 (后端 API HOST)
       # 默认值: http://127.0.0.1:11211
       - WEB_DEFAULT_API_HOST=http://修改为你的主机:11211
       # Web 管理界面 (前端) 访问端口
@@ -36,10 +42,11 @@ services:
       # Web 服务日志级别 (off, error, warn, info, debug, trace)
       # 默认值: warn
       - WEB_LOG_LEVEL=warn
-      # Web 数据目录 (包含数据库,日志,机器码)
+      # Web 数据目录 (包含数据库, 日志, 机器码)
       # 默认值: /web
       - WEB_DATA_DIR=/web
-      # 配置文件存储目录 (将toml格式文件配置放在此目录,每个文件就是一个实例,会自动运行,会连接到Web可修改)
+      # 配置文件存储目录 
+      # 将toml格式文件配置放在此目录, 每个文件就是一个实例, 运行容器会自动启动
       # 默认值: 无 (即不存储在本地)
       - CONFIG_DIR=/config
     cap_add:

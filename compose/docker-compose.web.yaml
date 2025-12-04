@@ -2,7 +2,7 @@
 services:
   easytier-web:
     # majosissi/easytier-web:latest 最新发布正式版
-    # majosissi/easytier-web:pre 最新Action构建版 (自动更新,不保证稳定性)
+    # majosissi/easytier-web:pre 最新Action构建版 (自动更新, 不保证稳定性)
     image: majosissi/easytier-web:latest
     container_name: easytier-web
     restart: always
@@ -32,7 +32,7 @@ services:
       # Web 服务日志级别 (off, error, warn, info, debug, trace)
       # 默认值: warn
       - WEB_LOG_LEVEL=warn
-      # Web 数据目录 (包含数据库,日志)
+      # Web 数据目录 (包含数据库, 日志)
       # 默认值: /web
       - WEB_DATA_DIR=/web
     volumes:

@@ -17,6 +17,7 @@ format_cmd() {
 
 # Default values
 WEB_ENABLE=${WEB_ENABLE:-false}
+WEB_REMOTE_API=${WEB_REMOTE_API:-}
 WEB_USERNAME=${WEB_USERNAME:-}
 WEB_PORT=${WEB_PORT:-11211}
 WEB_API_PORT=${WEB_API_PORT:-11211}
@@ -25,6 +26,8 @@ WEB_SERVER_PROTOCOL=${WEB_SERVER_PROTOCOL:-udp}
 WEB_DEFAULT_API_HOST=${WEB_DEFAULT_API_HOST:-http://127.0.0.1:$WEB_API_PORT}
 WEB_LOG_LEVEL=${WEB_LOG_LEVEL:-warn}
 WEB_DATA_DIR=${WEB_DATA_DIR:-/web}
+CONFIG_DIR=${CONFIG_DIR:-}
+
 
 # Ensure directories exist
 mkdir -p "$WEB_DATA_DIR/logs"
@@ -90,7 +93,11 @@ if [ ${#CORE_EXTRA_ARGS[@]} -gt 0 ]; then
 fi
 
 if [ "$WEB_ENABLE" = "true" ]; then
-  if [ -n "$WEB_USERNAME" ]; then
+  if [ -n "$WEB_REMOTE_API" ]; then
+      # If WEB_REMOTE_API is set, use it directly
+      ARGS+=("-w" "$WEB_REMOTE_API")
+  elif [ -n "$WEB_USERNAME" ]; then
+      # Otherwise, use WEB_USERNAME if set
       ARGS+=("-w" "$WEB_SERVER_PROTOCOL://127.0.0.1:$WEB_SERVER_PORT/$WEB_USERNAME")
   fi
 

@@ -2,7 +2,7 @@
 services:
   easytier:
     # majosissi/easytier:latest 最新发布正式版
-    # majosissi/easytier:pre 最新Action构建版 (自动更新,不保证稳定性)
+    # majosissi/easytier:pre 最新Action构建版 (自动更新, 不保证稳定性)
     image: majosissi/easytier:latest
     container_name: easytier
     restart: always
@@ -13,11 +13,17 @@ services:
       # 是否启用 Web 管理界面 
       # 默认值: false
       - WEB_ENABLE=true
-      # 设置 Web 管理的用户名 
-      # 如果设置了用户名且启用了 Web，将自动连接到本机的 Web 控制台
+      # 远程 Web 服务 URL (直接连接远程 Web 控制台)
+      # 当设置此变量时, WEB_USERNAME 将被忽略 (不可以同时链接多个 Web, 但仍然可以启用本地 Web 控制台)
+      # 示例值: udp://api.web.com:22020/username
+      # 默认值: 无
+      # - WEB_REMOTE_API=协议://主机:端口/用户名
+      # 设置 Web 管理的用户名 - 当设置了 WEB_REMOTE_API, 此变量无效
+      # 如果设置了用户名且启用了 Web, 将自动连接到本机的 Web 控制台
       # 注意：你仍需在 Web 界面手动注册该用户 (不要使用"admin"和"root")
+      # 默认值: 无
       - WEB_USERNAME=修改为你的用户名
-      # 设置 Web (前端) 默认连接的 (后端 API HOST) - 访问地址: http://主机:11211
+      # 设置 Web (前端) 默认连接的 (后端 API HOST)
       # 默认值: http://127.0.0.1:11211
       - WEB_DEFAULT_API_HOST=http://修改为你的主机:11211
       # Web 管理界面 (前端) 访问端口
@@ -26,7 +32,7 @@ services:
       # Web 管理界面 (后端 API HOST) 监听端口 - [可以和前端同端口]
       # 默认值: 11211
       - WEB_API_PORT=11211
-      # Web 管理服务 (RPC) 监听端口，用于接收 Core 的连接
+      # Web 管理服务 (RPC) 监听端口, 用于接收 Core 的连接
       # 默认值: 22020
       - WEB_SERVER_PORT=22020
       # 其他节点连接此控制台参数 [-w udp://主机:22020/用户名] - [-w 协议(WEB_SERVER_PROTOCOL)://主机:端口(WEB_SERVER_PORT)/用户名]
@@ -36,7 +42,7 @@ services:
       # Web 服务日志级别 (off, error, warn, info, debug, trace)
       # 默认值: warn
       - WEB_LOG_LEVEL=warn
-      # Web 数据目录 (包含数据库,日志,机器码)
+      # Web 数据目录 (包含数据库, 日志, 机器码)
       # 默认值: /web
       - WEB_DATA_DIR=/web
     cap_add:
@@ -46,7 +52,7 @@ services:
       - /dev/net/tun:/dev/net/tun
     volumes:
       - ./web:/web
-      # 配置文件目录可自定义 (非必要,除非用配置文件运行)
+      # 配置文件目录可自定义 (非必要, 除非用配置文件运行)
       # - ./config:/config
     # 如果启用了 Web 且设置了用户名, 不用设置 command, 直接用 Web 控制台管理
     # command 为 easytier-core 命令的参数
