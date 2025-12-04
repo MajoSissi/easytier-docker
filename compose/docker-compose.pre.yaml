@@ -10,14 +10,14 @@ services:
     environment:
       # 时区
       - TZ=Asia/Shanghai
-      # 是否启用 Web 管理界面 
-      # 默认值: false
-      - WEB_ENABLE=true
       # 远程 Web 服务 URL (直接连接远程 Web 控制台)
       # 当设置此变量时, WEB_USERNAME 将被忽略 (不可以同时链接多个 Web, 但仍然可以启用本地 Web 控制台)
       # 示例值: udp://api.web.com:22020/username
       # 默认值: 无
       # - WEB_REMOTE_API=协议://主机:端口/用户名
+      # 是否启用 Web 管理界面 
+      # 默认值: false
+      - WEB_ENABLE=true
       # 设置 Web 管理的用户名 - 当设置了 WEB_REMOTE_API, 此变量无效
       # 如果设置了用户名且启用了 Web, 将自动连接到本机的 Web 控制台
       # 注意：你仍需在 Web 界面手动注册该用户 (不要使用"admin"和"root")
