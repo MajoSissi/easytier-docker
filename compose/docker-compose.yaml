@@ -35,11 +35,11 @@ services:
       # Web 管理服务 (RPC) 监听端口, 用于接收 Core 的连接
       # 默认值: 22020
       - WEB_SERVER_PORT=22020
-      # 其他节点连接此控制台参数 [-w udp://主机:22020/用户名] - [-w 协议(WEB_SERVER_PROTOCOL)://主机:端口(WEB_SERVER_PORT)/用户名]
-      # Web 管理服务 (RPC) 协议 (tcp/udp) 
+      # 其他节点连接参数 [-w udp://主机:22020/用户名] [-w 协议(WEB_SERVER_PROTOCOL)://主机:端口(WEB_SERVER_PORT)/用户名]
+      # Web 管理服务 (RPC) 协议 [udp, tcp, ws]
       # 默认值: udp
       - WEB_SERVER_PROTOCOL=udp
-      # Web 服务日志级别 (off, error, warn, info, debug, trace)
+      # Web 服务日志级别 [off, error, warn, info, debug, trace]
       # 默认值: warn
       - WEB_LOG_LEVEL=warn
       # Web 数据目录 (包含数据库, 日志, 机器码)
