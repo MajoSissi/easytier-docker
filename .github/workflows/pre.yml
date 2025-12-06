@@ -30,14 +30,13 @@ jobs:
               repo,
               workflow_id: 'core.yml',
               branch: 'main',
-              event: 'push',
               status: 'success',
               per_page: 20
             });
 
             let runId = '';
             for (const run of data.workflow_runs) {
-              core.info(`Checking run ${run.id}...`);
+              core.info(`Checking run ${run.id} (Event: ${run.event}, Branch: ${run.head_branch})...`);
               const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
                 owner,
                 repo,
