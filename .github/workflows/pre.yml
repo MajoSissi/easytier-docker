@@ -30,6 +30,7 @@ jobs:
               repo,
               workflow_id: 'core.yml',
               branch: 'main',
+              event: 'push',
               status: 'success',
               per_page: 20
             });
@@ -70,8 +71,8 @@ jobs:
             exit 0
           fi
 
-          if [ -f .github/state/LAST_RUN_ID ]; then
-            CURRENT_RUN_ID=$(cat .github/state/LAST_RUN_ID)
+          if [ -f .github/state/LAST_PRE_VERSION ]; then
+            CURRENT_RUN_ID=$(cat .github/state/LAST_PRE_VERSION)
           else
             CURRENT_RUN_ID=""
           fi
@@ -162,14 +163,14 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/easytier-web:pre
 
-      - name: Update LAST_RUN_ID file
+      - name: Update LAST_PRE_VERSION file
         if: steps.check_run_id.outputs.build == 'true'
         run: |
           mkdir -p .github/state
-          echo "${{ steps.get_run_id.outputs.run_id }}" > .github/state/LAST_RUN_ID
+          echo "${{ steps.get_run_id.outputs.run_id }}" > .github/state/LAST_PRE_VERSION
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
-          git add .github/state/LAST_RUN_ID
-          git diff --staged --quiet || (git commit -m "Update LAST_RUN_ID to ${{ steps.get_run_id.outputs.run_id }}" && git pull --rebase && git push)
-          git add .github/state/LAST_RUN_ID
-          git diff --staged --quiet || (git commit -m "Update LAST_RUN_ID to ${{ steps.get_run_id.outputs.run_id }}" && git pull --rebase && git push)
+          git add .github/state/LAST_PRE_VERSION
+          git diff --staged --quiet || (git commit -m "Update LAST_PRE_VERSION to ${{ steps.get_run_id.outputs.run_id }}" && git pull --rebase && git push)
+          git add .github/state/LAST_PRE_VERSION
+          git diff --staged --quiet || (git commit -m "Update LAST_PRE_VERSION to ${{ steps.get_run_id.outputs.run_id }}" && git pull --rebase && git push)
