@@ -25,41 +25,95 @@ jobs:
           script: |
             const owner = 'EasyTier';
             const repo = 'EasyTier';
-            const { data } = await github.rest.actions.listWorkflowRuns({
+            
+            // 1. Get latest main push run
+            const mainRuns = await github.rest.actions.listWorkflowRuns({
               owner,
               repo,
               workflow_id: 'core.yml',
               branch: 'main',
+              event: 'push',
               status: 'success',
-              per_page: 20
+              per_page: 1
             });
 
-            let runId = '';
-            for (const run of data.workflow_runs) {
-              core.info(`Checking run ${run.id} (Event: ${run.event}, Branch: ${run.head_branch})...`);
-              const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-                owner,
-                repo,
-                run_id: run.id,
-                per_page: 1
-              });
-              if (artifacts.data.total_count > 0) {
-                core.info(`Found artifacts in run ${run.id}`);
-                runId = String(run.id);
-                break;
-              }
-              core.info(`Run ${run.id} has no artifacts.`);
+            if (mainRuns.data.total_count === 0) {
+              core.setFailed('No successful runs found on main branch.');
+              return;
             }
 
-            core.setOutput('run_id', runId);
+            const mainRun = mainRuns.data.workflow_runs[0];
+            const mainRunId = String(mainRun.id);
+            const treeId = mainRun.head_commit.tree_id;
+            
+            core.info(`Latest main run: ${mainRunId}, Tree ID: ${treeId}`);
+
+            // Check artifacts for main run
+            const mainArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+                owner,
+                repo,
+                run_id: mainRun.id,
+                per_page: 1
+            });
+
+            let artifactRunId = '';
+
+            if (mainArtifacts.data.total_count > 0) {
+                core.info(`Main run ${mainRunId} has artifacts.`);
+                artifactRunId = mainRunId;
+            } else {
+                core.info(`Main run ${mainRunId} has no artifacts. Searching for duplicate runs with Tree ID ${treeId}...`);
+                
+                // Search for other runs with same tree_id
+                const recentRuns = await github.rest.actions.listWorkflowRuns({
+                  owner,
+                  repo,
+                  workflow_id: 'core.yml',
+                  status: 'success',
+                  per_page: 50 // Search last 50 runs
+                });
+
+                for (const run of recentRuns.data.workflow_runs) {
+                    // Skip the main run itself as we already checked it
+                    if (run.id === mainRun.id) continue;
+
+                    if (run.head_commit.tree_id === treeId) {
+                        core.info(`Checking candidate run ${run.id} (Branch: ${run.head_branch}, Event: ${run.event})...`);
+                        const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+                            owner,
+                            repo,
+                            run_id: run.id,
+                            per_page: 1
+                        });
+                        
+                        if (artifacts.data.total_count > 0) {
+                            core.info(`Found artifacts in run ${run.id}`);
+                            artifactRunId = String(run.id);
+                            break;
+                        } else {
+                            core.info(`Run ${run.id} matches tree_id but has no artifacts. Continuing search...`);
+                        }
+                    }
+                }
+            }
+
+            core.setOutput('run_id', mainRunId);
+            core.setOutput('artifact_run_id', artifactRunId);
 
       - name: Check if run ID changed
         id: check_run_id
         run: |
           LATEST_RUN_ID="${{ steps.get_run_id.outputs.run_id }}"
+          ARTIFACT_RUN_ID="${{ steps.get_run_id.outputs.artifact_run_id }}"
           
           if [ -z "$LATEST_RUN_ID" ]; then
-             echo "No artifacts found to build."
+             echo "No latest run found."
+             echo "build=false" >> $GITHUB_OUTPUT
+             exit 0
+          fi
+
+          if [ -z "$ARTIFACT_RUN_ID" ]; then
+             echo "No artifacts found for latest version (Tree ID match failed)."
              echo "build=false" >> $GITHUB_OUTPUT
              exit 0
           fi
@@ -90,7 +144,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: EasyTier/EasyTier
-          run-id: ${{ steps.get_run_id.outputs.run_id }}
+          run-id: ${{ steps.get_run_id.outputs.artifact_run_id }}
           pattern: easytier-linux-*
           merge-multiple: false
           path: artifacts
