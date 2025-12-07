@@ -1,8 +1,10 @@
-# 完整 Core组网 + Web控制台 [https://hub.docker.com/r/majosissi/easytier]
+# Core + Web 控制台一体部署
+# 镜像说明: https://hub.docker.com/r/majosissi/easytier
 services:
   easytier:
-    # majosissi/easytier:latest 最新发布正式版
-    # majosissi/easytier:pre 最新Action构建版 (自动更新, 不保证稳定性)
+    # 可选镜像
+    # majosissi/easytier:latest  最新发布正式版
+    # majosissi/easytier:pre     最新 Action 构建版 (合并主线的版本, 自动更新, 稳定性不保证)
     image: majosissi/easytier:pre
     container_name: easytier
     restart: always
@@ -10,44 +12,41 @@ services:
     environment:
       # 时区
       - TZ=Asia/Shanghai
-      # 远程 Web 服务 URL (直接连接远程 Web 控制台)
-      # 当设置此变量时, WEB_USERNAME 将被忽略 (不可以同时链接多个 Web, 但仍然可以启用本地 Web 控制台)
-      # 示例值: udp://api.web.com:22020/username
-      # 默认值: 无
+      # 远程 Web 服务 URL, 直接连接远程控制台
+      # 设置后会忽略 WEB_USERNAME, 不可同时连接多个 Web, 但仍可启用本地控制台
+      # 示例: udp://api.web.com:22020/username
+      # 默认: 无
       # - WEB_REMOTE_API=协议://主机:端口/用户名
-      # 是否启用 Web 管理界面 
-      # 默认值: false
+      # 是否启用 Web 管理界面
+      # 默认: false
       - WEB_ENABLE=true
-      # 设置 Web 管理的用户名 - 当设置了 WEB_REMOTE_API, 此变量无效
-      # 如果设置了用户名且启用了 Web, 将自动连接到本机的 Web 控制台
-      # 注意：你仍需在 Web 界面手动注册该用户 (不要使用"admin"和"root")
-      # 默认值: 无
+      # Web 管理用户名; 设置 WEB_REMOTE_API 时此项无效
+      # 启用 Web 且提供用户名时将自动连接本地控制台, 仍需在界面注册该用户 (不使用 admin/root)
+      # 默认: 无
       - WEB_USERNAME=修改为你的用户名
-      # 设置 Web (前端) 默认连接的 (后端 API HOST)
-      # 默认值: http://127.0.0.1:11211
+      # Web 前端默认连接的后端 API HOST
+      # 默认: http://127.0.0.1:11211
       - WEB_DEFAULT_API_HOST=http://修改为你的主机:11211
-      # Web 管理界面 (前端) 访问端口
-      # 默认值: 11211
+      # Web 前端访问端口
+      # 默认: 11211
       - WEB_PORT=11211
-      # Web 管理界面 (后端 API HOST) 监听端口 - [可以和前端同端口]
-      # 默认值: 11211
+      # Web 后端 API 监听端口; 可与前端复用
+      # 默认: 11211
       - WEB_API_PORT=11211
-      # Web 管理服务 (RPC) 监听端口，用于接收 Core 的连接
-      # 默认值: 22020
+      # Web 管理服务 (RPC) 监听端口, Core 将通过此端口连接
+      # 默认: 22020
       - WEB_SERVER_PORT=22020
-      # 其他节点连接参数 [-w udp://主机:22020/用户名] [-w 协议(WEB_SERVER_PROTOCOL)://主机:端口(WEB_SERVER_PORT)/用户名]
-      # Web 管理服务 (RPC) 协议 [udp, tcp, ws]
-      # 默认值: udp
+      # Web 管理服务 (RPC) 协议, 可与其他节点的 -w 参数保持一致
+      # 默认: udp, 可选: [udp | tcp | ws],
       - WEB_SERVER_PROTOCOL=udp
-      # Web 服务日志级别 [off, error, warn, info, debug, trace]
-      # 默认值: warn
+      # Web 服务日志级别 
+      # 默认: warn, 可选: [off | error | warn | info | debug | trace] 
       - WEB_LOG_LEVEL=warn
-      # Web 数据目录 (包含数据库, 日志, 机器码)
-      # 默认值: /web
+      # Web 数据目录, 存放 (数据库/日志/机器码)
+      # 默认: /web
       - WEB_DATA_DIR=/web
-      # 配置文件存储目录 
-      # 将toml格式文件配置放在此目录, 每个文件就是一个实例, 运行容器会自动启动
-      # 默认值: 无 (即不存储在本地)
+      # 配置文件目录, 放置 toml 文件以自动拉起多实例
+      # 默认: 无 (即配置不存储到本地)
       - CONFIG_DIR=/config
     cap_add:
       - NET_ADMIN
@@ -57,5 +56,5 @@ services:
     volumes:
       - ./config:/config
       - ./web:/web
-    # command 为 easytier-core 命令的[附加]参数, 有需要再设置
+    # command 为 easytier-core 的附加参数, 按需启用示例即可
     # command: -i 10.126.126.1 --network-name my-network --network-secret my-secret -p 节点服务器
