@@ -50,10 +50,10 @@ services:
       # 默认: 22020
       - WEB_SERVER_PORT=22020
       # Web 管理服务 (RPC) 协议, 可与其他节点的 -w 参数保持一致
-      # 默认: udp, 可选: [udp | tcp | ws],
+      # 默认: udp - 可选: [udp | tcp | ws]
       - WEB_SERVER_PROTOCOL=udp
       # Web 服务日志级别 
-      # 默认: warn, 可选: [off | error | warn | info | debug | trace] 
+      # 默认: warn - 可选: [off | error | warn | info | debug | trace] 
       - WEB_LOG_LEVEL=warn
       # Web 数据目录, 存放 (数据库/日志/机器码)
       # 默认: /web
@@ -106,10 +106,10 @@ services:
       # 默认: 22020
       - WEB_SERVER_PORT=22020
       # Web 管理服务 (RPC) 协议, 可与其他节点的 -w 参数保持一致
-      # 默认: udp, 可选: [udp | tcp | ws],
+      # 默认: udp - 可选: [udp | tcp | ws]
       - WEB_SERVER_PROTOCOL=udp
       # Web 服务日志级别 
-      # 默认: warn, 可选: [off | error | warn | info | debug | trace] 
+      # 默认: warn - 可选: [off | error | warn | info | debug | trace] 
       - WEB_LOG_LEVEL=warn
       # Web 数据目录, 存放 (数据库/日志/机器码)
       # 默认: /web
