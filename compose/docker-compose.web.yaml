@@ -37,5 +37,7 @@ services:
       # Web 服务日志级别 
       # 默认: warn - 可选: [off | error | warn | info | debug | trace] 
       - WEB_LOG_LEVEL=warn
+      # WEB geoip数据库位置（自己导入）
+      #- WEB_GEOIP_DIR=
     volumes:
       - ./data:/app/data

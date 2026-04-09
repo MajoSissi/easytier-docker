@@ -25,6 +25,7 @@ WEB_SERVER_PORT=${WEB_SERVER_PORT:-22020}
 WEB_SERVER_PROTOCOL=${WEB_SERVER_PROTOCOL:-udp}
 WEB_DEFAULT_API_HOST=${WEB_DEFAULT_API_HOST:-http://127.0.0.1:$WEB_API_PORT}
 WEB_LOG_LEVEL=${WEB_LOG_LEVEL:-warn}
+WEB_GEOIP_DIR=${WEB_GEOIP_DIR:-}
 WEB_DATA_DIR=/app/data
 CONFIG_DIR=/app/data/config
 
@@ -74,6 +75,10 @@ if [ "$WEB_ENABLE" = "true" ]; then
     --disable-registration "$WEB_DISABLE_REGISTRATION"
   )
 
+  if [ -n "$WEB_GEOIP_DIR" ]; then
+    WEB_ARGS+=("--geoip-db" "$WEB_GEOIP_DIR")
+  fi
+
   log "[Web] Executing command: $(format_cmd "$BINARY" "${WEB_ARGS[@]}")"
 
   $BINARY "${WEB_ARGS[@]}" &
@@ -110,6 +115,6 @@ if [ "$WEB_ENABLE" = "true" ] || [ -n "$WEB_REMOTE_API" ]; then
   ARGS+=("--machine-id" "$MACHINE_ID")
 fi
 
-log "[Core] Executing command: $(format_cmd easytier-core "${ARGS[@]}")"
+log "[Core] Executing command: $(format_cmd easytier-core "${ARGS[@]}" "${CORE_EXTRA_ARGS[@]}")"
 
-exec easytier-core "${ARGS[@]}"
+exec easytier-core "${ARGS[@]}" "${CORE_EXTRA_ARGS[@]}"

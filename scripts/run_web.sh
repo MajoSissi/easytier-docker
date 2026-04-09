@@ -22,6 +22,7 @@ WEB_SERVER_PORT=${WEB_SERVER_PORT:-22020}
 WEB_SERVER_PROTOCOL=${WEB_SERVER_PROTOCOL:-udp}
 WEB_DEFAULT_API_HOST=${WEB_DEFAULT_API_HOST:-http://127.0.0.1:$WEB_API_PORT}
 WEB_LOG_LEVEL=${WEB_LOG_LEVEL:-warn}
+WEB_GEOIP_DIR=${WEB_GEOIP_DIR:-}
 WEB_DATA_DIR=/app/data
 
 # Custom entrypoint command
@@ -79,6 +80,10 @@ WEB_ARGS=(
   --api-host "$API_URL"
   --disable-registration "$WEB_DISABLE_REGISTRATION"
 )
+
+if [ -n "$WEB_GEOIP_DIR" ]; then
+  WEB_ARGS+=("--geoip-db" "$WEB_GEOIP_DIR")
+fi
 
 if [ ${#WEB_EXTRA_ARGS[@]} -gt 0 ]; then
   WEB_ARGS+=("${WEB_EXTRA_ARGS[@]}")
