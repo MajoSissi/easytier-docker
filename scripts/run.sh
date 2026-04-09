@@ -18,9 +18,9 @@ format_cmd() {
 # Default values
 WEB_ENABLE=${WEB_ENABLE:-false}
 WEB_REMOTE_API=${WEB_REMOTE_API:-}
+WEB_DISABLE_REGISTRATION=${WEB_DISABLE_REGISTRATION:-false}
 WEB_USERNAME=${WEB_USERNAME:-}
 WEB_PORT=${WEB_PORT:-11211}
-WEB_API_PORT=${WEB_API_PORT:-11211}
 WEB_SERVER_PORT=${WEB_SERVER_PORT:-22020}
 WEB_SERVER_PROTOCOL=${WEB_SERVER_PROTOCOL:-udp}
 WEB_DEFAULT_API_HOST=${WEB_DEFAULT_API_HOST:-http://127.0.0.1:$WEB_API_PORT}
@@ -70,9 +70,9 @@ if [ "$WEB_ENABLE" = "true" ]; then
     --file-log-dir "$WEB_DATA_DIR/logs"
     -c "$WEB_SERVER_PORT"
     -p "$WEB_SERVER_PROTOCOL"
-    -a "$WEB_API_PORT"
-    -l "$WEB_PORT"
+    -a "$WEB_PORT"
     --api-host "$API_URL"
+    --disable-registration "$WEB_DISABLE_REGISTRATION"
   )
 
   if [ -n "$WEB_GEOIP_DIR" ]; then
