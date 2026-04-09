@@ -24,36 +24,44 @@ services:
     restart: always
     network_mode: host
     environment:
-      # 时区
       - TZ=Asia/Shanghai
-      # 远程 Web 服务 URL, 直接远程连接其他端的 Web 控制台
+      # -------------------------------------------
+      # 连接其他远程 Web 控制台
       # 设置后会忽略 WEB_USERNAME, 不可同时连接多个 Web, 但仍可启用本地控制台
       # 示例: udp://api.web.com:22020/username
       # 默认: 无
       # - WEB_REMOTE_API=协议://主机:端口/用户名
-      # 是否启用 Web 管理界面
+      # -------------------------------------------
+      # 是否启用 Web 管理界面 
       # 默认: false
-      - WEB_ENABLE=true
+      - WEB_ENABLE=false
+      # -------------------------------------------
+      # 是否禁止注册新用户 (内置用户: admin, 密码: admin, 登录后右上角可修改密码)
+      # 默认: true
+      - WEB_DISABLE_REGISTRATION=true
+      # -------------------------------------------
       # Web 管理用户名; 设置 WEB_REMOTE_API 时此项无效
       # 启用 Web 且提供用户名时将自动连接本地控制台
-      # 自定义用户名，需要手动注册同名用户才行 (内置账户-账号/密码都是admin，登录后右上角可修改)
+      # 自定义用户名，需要先手动注册对应用户名才行 
       # 默认: 无
       - WEB_USERNAME=admin
+      # -------------------------------------------
       # Web 前端默认连接的后端 API HOST
       # 默认: http://127.0.0.1:11211
       - WEB_DEFAULT_API_HOST=http://修改为你的主机:11211
-      # Web 前端访问端口
+      # -------------------------------------------
+      # Web 访问端口
       # 默认: 11211
       - WEB_PORT=11211
-      # Web 后端 API 监听端口; 可与前端复用
-      # 默认: 11211
-      - WEB_API_PORT=11211
+      # -------------------------------------------
       # Web 管理服务 (RPC) 监听端口, Core 将通过此端口连接
       # 默认: 22020
       - WEB_SERVER_PORT=22020
+      # -------------------------------------------
       # Web 管理服务 (RPC) 协议, 可与其他节点的 -w 参数保持一致
       # 默认: udp - 可选: [udp | tcp | ws]
       - WEB_SERVER_PROTOCOL=udp
+      # -------------------------------------------
       # Web 服务日志级别 
       # 默认: warn - 可选: [off | error | warn | info | debug | trace] 
       - WEB_LOG_LEVEL=warn
@@ -64,9 +72,6 @@ services:
       - /dev/net/tun:/dev/net/tun
     volumes:
       - ./data:/app/data
-    # 如果启用了 Web 且设置了用户名, 不用设置 command, 直接用 Web 控制台管理
-    # command 为 easytier-core 命令的附加参数
-    # command: -i 10.126.126.1 --network-name my-network --network-secret my-secret -p 节点服务器
 ```
 <!-- END_COMPOSE_CORE -->
 
@@ -78,9 +83,9 @@ services:
 # 镜像说明: https://hub.docker.com/r/majosissi/easytier-web
 services:
   easytier-web:
-    # majosissi/easytier:latest  最新 Release 正式版
-    # majosissi/easytier:pre     最新 Pre-release 预览版
-    # majosissi/easytier:ci      最新 Action 构建版 (合并主线的版本, 自动更新, 稳定性不保证)
+    # majosissi/easytier-web:latest  最新 Release 正式版
+    # majosissi/easytier-web:pre     最新 Pre-release 预览版
+    # majosissi/easytier-web:ci      最新 Action 构建版 (合并主线的版本, 自动更新, 稳定性不保证)
     image: majosissi/easytier-web:latest
     container_name: easytier-web
     restart: always
@@ -89,23 +94,27 @@ services:
       - 11211:11211
       - 22020:22020
     environment:
-      # 时区
       - TZ=Asia/Shanghai
+      # -------------------------------------------
+      # 是否禁止注册新用户 (默认用户: admin, 密码: admin)
+      # 默认: false
+      - WEB_DISABLE_REGISTRATION=false
+      # -------------------------------------------
       # Web 前端默认连接的后端 API HOST
       # 默认: http://127.0.0.1:11211
       - WEB_DEFAULT_API_HOST=http://修改为你的主机:11211
-      # Web 前端访问端口
+      # -------------------------------------------
+      # Web 访问端口
       # 默认: 11211
       - WEB_PORT=11211
-      # Web 后端 API 监听端口; 可与前端复用
-      # 默认: 11211
-      - WEB_API_PORT=11211
       # Web 管理服务 (RPC) 监听端口, Core 将通过此端口连接
       # 默认: 22020
       - WEB_SERVER_PORT=22020
+      # -------------------------------------------
       # Web 管理服务 (RPC) 协议, 可与其他节点的 -w 参数保持一致
       # 默认: udp - 可选: [udp | tcp | ws]
       - WEB_SERVER_PROTOCOL=udp
+      # -------------------------------------------
       # Web 服务日志级别 
       # 默认: warn - 可选: [off | error | warn | info | debug | trace] 
       - WEB_LOG_LEVEL=warn
