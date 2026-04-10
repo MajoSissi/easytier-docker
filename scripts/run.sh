@@ -25,10 +25,15 @@ WEB_SERVER_PORT=${WEB_SERVER_PORT:-22020}
 WEB_SERVER_PROTOCOL=${WEB_SERVER_PROTOCOL:-udp}
 WEB_DEFAULT_API_HOST=${WEB_DEFAULT_API_HOST:-http://127.0.0.1:$WEB_PORT}
 WEB_LOG_LEVEL=${WEB_LOG_LEVEL:-warn}
-CORE_LOG_LEVEL=${CORE_LOG_LEVEL:-warn}
 WEB_DATA_DIR=/app/data/web
 WEB_LOG_DIR=$WEB_DATA_DIR/logs
 WEB_GEOIP_DIR=${WEB_GEOIP_DIR:-}
+CORE_LOG_LEVEL=${CORE_LOG_LEVEL:-warn}
+CORE_CONSOLE_LOG_LEVEL=${CORE_CONSOLE_LOG_LEVEL:-$CORE_LOG_LEVEL}
+CORE_FILE_LOG_LEVEL=${CORE_FILE_LOG_LEVEL:-$CORE_LOG_LEVEL}
+CORE_FILE_LOG_DIR=${CORE_FILE_LOG_DIR:-}
+CORE_FILE_LOG_SIZE=${CORE_FILE_LOG_SIZE:-}
+CORE_FILE_LOG_COUNT=${CORE_FILE_LOG_COUNT:-}
 CONFIG_DIR=/app/data/config
 
 
@@ -122,7 +127,21 @@ if [ "$WEB_ENABLE" = "true" ] || [ -n "$WEB_REMOTE_API" ]; then
   ARGS+=("--machine-id" "$MACHINE_ID")
 fi
 
-ARGS+=("--log-level" "$CORE_LOG_LEVEL")
+# Add Core logging options
+ARGS+=("--console-log-level" "$CORE_CONSOLE_LOG_LEVEL")
+ARGS+=("--file-log-level" "$CORE_FILE_LOG_LEVEL")
+
+if [ -n "$CORE_FILE_LOG_DIR" ]; then
+  ARGS+=("--file-log-dir" "$CORE_FILE_LOG_DIR")
+fi
+
+if [ -n "$CORE_FILE_LOG_SIZE" ]; then
+  ARGS+=("--file-log-size" "$CORE_FILE_LOG_SIZE")
+fi
+
+if [ -n "$CORE_FILE_LOG_COUNT" ]; then
+  ARGS+=("--file-log-count" "$CORE_FILE_LOG_COUNT")
+fi
 
 log "[Core] Executing command: $(format_cmd easytier-core "${ARGS[@]}" "${CORE_EXTRA_ARGS[@]}")"
 

@@ -55,7 +55,21 @@ services:
       # -------------------------------------------
       # Core 服务日志级别
       # 默认: warn - 可选: [trace | debug | info | warn | error]
-      - CORE_LOG_LEVEL=warn
+      - CORE_LOG_LEVEL=warn      # -------------------------------------------
+      # Core 控制台日志级别 (可选, 默认继承 CORE_LOG_LEVEL)
+      # - CORE_CONSOLE_LOG_LEVEL=warn
+      # -------------------------------------------
+      # Core 文件日志级别 (可选, 默认继承 CORE_LOG_LEVEL)
+      # - CORE_FILE_LOG_LEVEL=warn
+      # -------------------------------------------
+      # Core 文件日志保存目录 (可选)
+      # - CORE_FILE_LOG_DIR=/app/data/core/logs
+      # -------------------------------------------
+      # Core 单个文件日志大小，单位 MB，默认值为 100MB (可选)
+      # - CORE_FILE_LOG_SIZE=100
+      # -------------------------------------------
+      # Core 最大文件日志数量，默认值为 10 (可选)
+      # - CORE_FILE_LOG_COUNT=10
     cap_add:
       - NET_ADMIN
       - NET_RAW
