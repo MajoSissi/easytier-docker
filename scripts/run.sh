@@ -25,6 +25,7 @@ WEB_SERVER_PORT=${WEB_SERVER_PORT:-22020}
 WEB_SERVER_PROTOCOL=${WEB_SERVER_PROTOCOL:-udp}
 WEB_DEFAULT_API_HOST=${WEB_DEFAULT_API_HOST:-http://127.0.0.1:$WEB_PORT}
 WEB_LOG_LEVEL=${WEB_LOG_LEVEL:-warn}
+CORE_LOG_LEVEL=${CORE_LOG_LEVEL:-warn}
 WEB_DATA_DIR=/app/data/web
 WEB_LOG_DIR=$WEB_DATA_DIR/logs
 WEB_GEOIP_DIR=${WEB_GEOIP_DIR:-}
@@ -68,6 +69,7 @@ if [ "$WEB_ENABLE" = "true" ]; then
 
   WEB_ARGS=(
     -d "$WEB_DATA_DIR/et.db"
+    --console-log-level "$WEB_LOG_LEVEL"
     --file-log-level "$WEB_LOG_LEVEL"
     --file-log-dir "$WEB_LOG_DIR"
     -c "$WEB_SERVER_PORT"
@@ -119,6 +121,8 @@ if [ "$WEB_ENABLE" = "true" ] || [ -n "$WEB_REMOTE_API" ]; then
   log "[Core] Using machine ID: $MACHINE_ID"
   ARGS+=("--machine-id" "$MACHINE_ID")
 fi
+
+ARGS+=("--log-level" "$CORE_LOG_LEVEL")
 
 log "[Core] Executing command: $(format_cmd easytier-core "${ARGS[@]}" "${CORE_EXTRA_ARGS[@]}")"
 

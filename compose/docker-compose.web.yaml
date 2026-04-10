@@ -1,11 +1,11 @@
 # 单 Web 控制台部署
-# 镜像说明: https://hub.docker.com/r/majosissi/easytier-web
+# 镜像说明: https://hub.docker.com/r/m1zuon/easytier-web
 services:
   easytier-web:
-    # majosissi/easytier-web:latest  最新 Release 正式版
-    # majosissi/easytier-web:pre     最新 Pre-release 预览版
-    # majosissi/easytier-web:ci      最新 Action 构建版 (合并主线的版本, 自动更新, 稳定性不保证)
-    image: majosissi/easytier-web:latest
+    # m1zuon/easytier-web:latest  最新 Release 正式版
+    # m1zuon/easytier-web:pre     最新 Pre-release 预览版
+    # m1zuon/easytier-web:ci      最新 Action 构建版 (合并主线的版本, 自动更新, 稳定性不保证)
+    image: m1zuon/easytier-web:latest
     container_name: easytier-web
     restart: always
     network_mode: bridge
@@ -16,8 +16,8 @@ services:
       - TZ=Asia/Shanghai
       # -------------------------------------------
       # 是否禁止注册新用户 (默认用户: admin, 密码: admin)
-      # 默认: false
-      - WEB_DISABLE_REGISTRATION=false
+      # 默认: true
+      - WEB_DISABLE_REGISTRATION=true
       # -------------------------------------------
       # 主机物理IP地址 (公网 / 内网)
       # 默认: http://127.0.0.1:11211
@@ -34,8 +34,9 @@ services:
       # 默认: udp - 可选: [udp | tcp | ws]
       - WEB_SERVER_PROTOCOL=udp
       # -------------------------------------------
-      # Web 服务日志级别 
-      # 默认: warn - 可选: [off | error | warn | info | debug | trace] 
+      # Web 服务日志级别
+      # 默认: warn - 可选: [trace | debug | info | warn | error]
+      # 控制 Web console 日志和文件日志级别
       - WEB_LOG_LEVEL=warn
     volumes:
       - ./data:/app/data
