@@ -13,13 +13,13 @@
 <!-- BEGIN_COMPOSE_CORE -->
 ```yaml
 # Core + Web 控制台一体部署
-# 镜像说明: https://hub.docker.com/r/majosissi/easytier
+# 镜像说明: https://hub.docker.com/r/m1zuon/easytier
 services:
   easytier:
-    # majosissi/easytier:latest  最新 Release 正式版
-    # majosissi/easytier:pre     最新 Pre-release 预览版
-    # majosissi/easytier:ci      最新 Action 构建版 (合并主线的版本, 自动更新, 稳定性不保证)
-    image: majosissi/easytier:latest
+    # m1zuon/easytier:latest  最新 Release 正式版
+    # m1zuon/easytier:pre     最新 Pre-release 预览版
+    # m1zuon/easytier:ci      最新 Action 构建版 (合并主线的版本, 自动更新, 稳定性不保证)
+    image: m1zuon/easytier:latest
     container_name: easytier
     restart: always
     network_mode: host
@@ -33,12 +33,12 @@ services:
       # - WEB_REMOTE_API=协议://主机:端口/用户名
       # -------------------------------------------
       # 是否启用 Web 管理界面 
-      # 默认: false
-      - WEB_ENABLE=false
-      # -------------------------------------------
-      # 是否禁止注册新用户 (内置用户: admin, 密码: admin, 登录后右上角可修改密码)
       # 默认: true
-      - WEB_DISABLE_REGISTRATION=true
+      - WEB_ENABLE=true
+      # -------------------------------------------
+      # 是否禁止注册新用户
+      # 默认: false
+      - WEB_DISABLE_REGISTRATION=false
       # -------------------------------------------
       # Web 管理用户名; 设置 WEB_REMOTE_API 时此项无效
       # 启用 Web 且提供用户名时将自动连接本地控制台
@@ -62,9 +62,28 @@ services:
       # 默认: udp - 可选: [udp | tcp | ws]
       - WEB_SERVER_PROTOCOL=udp
       # -------------------------------------------
-      # Web 服务日志级别 
-      # 默认: warn - 可选: [off | error | warn | info | debug | trace] 
+      # Web 服务日志级别
+      # 默认: warn - 可选: [trace | debug | info | warn | error]
+      # 控制 Web console 日志和文件日志级别
       - WEB_LOG_LEVEL=warn
+      # -------------------------------------------
+      # Core 服务日志级别
+      # 默认: warn - 可选: [trace | debug | info | warn | error]
+      - CORE_LOG_LEVEL=warn      # -------------------------------------------
+      # Core 控制台日志级别 (可选, 默认继承 CORE_LOG_LEVEL)
+      # - CORE_CONSOLE_LOG_LEVEL=warn
+      # -------------------------------------------
+      # Core 文件日志级别 (可选, 默认继承 CORE_LOG_LEVEL)
+      # - CORE_FILE_LOG_LEVEL=warn
+      # -------------------------------------------
+      # Core 文件日志保存目录 (可选)
+      # - CORE_FILE_LOG_DIR=/app/data/core/logs
+      # -------------------------------------------
+      # Core 单个文件日志大小，单位 MB，默认值为 100MB (可选)
+      # - CORE_FILE_LOG_SIZE=100
+      # -------------------------------------------
+      # Core 最大文件日志数量，默认值为 10 (可选)
+      # - CORE_FILE_LOG_COUNT=10
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -80,13 +99,13 @@ services:
 <!-- BEGIN_COMPOSE_WEB -->
 ```yaml
 # 单 Web 控制台部署
-# 镜像说明: https://hub.docker.com/r/majosissi/easytier-web
+# 镜像说明: https://hub.docker.com/r/m1zuon/easytier-web
 services:
   easytier-web:
-    # majosissi/easytier-web:latest  最新 Release 正式版
-    # majosissi/easytier-web:pre     最新 Pre-release 预览版
-    # majosissi/easytier-web:ci      最新 Action 构建版 (合并主线的版本, 自动更新, 稳定性不保证)
-    image: majosissi/easytier-web:latest
+    # m1zuon/easytier-web:latest  最新 Release 正式版
+    # m1zuon/easytier-web:pre     最新 Pre-release 预览版
+    # m1zuon/easytier-web:ci      最新 Action 构建版 (合并主线的版本, 自动更新, 稳定性不保证)
+    image: m1zuon/easytier-web:latest
     container_name: easytier-web
     restart: always
     network_mode: bridge
@@ -97,8 +116,8 @@ services:
       - TZ=Asia/Shanghai
       # -------------------------------------------
       # 是否禁止注册新用户 (默认用户: admin, 密码: admin)
-      # 默认: false
-      - WEB_DISABLE_REGISTRATION=false
+      # 默认: true
+      - WEB_DISABLE_REGISTRATION=true
       # -------------------------------------------
       # 主机物理IP地址 (公网 / 内网)
       # 默认: http://127.0.0.1:11211
@@ -115,8 +134,9 @@ services:
       # 默认: udp - 可选: [udp | tcp | ws]
       - WEB_SERVER_PROTOCOL=udp
       # -------------------------------------------
-      # Web 服务日志级别 
-      # 默认: warn - 可选: [off | error | warn | info | debug | trace] 
+      # Web 服务日志级别
+      # 默认: warn - 可选: [trace | debug | info | warn | error]
+      # 控制 Web console 日志和文件日志级别
       - WEB_LOG_LEVEL=warn
     volumes:
       - ./data:/app/data
