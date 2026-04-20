@@ -44,8 +44,7 @@ fi
 # Web
 if [ "$WEB_ENABLE" = "true" ]; then
   # Ensure directories exist
-  mkdir -p "$WEB_LOG_DIR"
-  mkdir -p "$CONFIG_DIR"
+  mkdir -p "$WEB_DATA_DIR" "$WEB_LOG_DIR" "$CORE_LOG_DIR" "$CONFIG_DIR"
   log "[Web] Starting easytier-web-embed..."
 
   # Get API URL
