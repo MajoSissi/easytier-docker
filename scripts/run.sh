@@ -12,8 +12,8 @@ WEB_SERVER_PORT=${WEB_SERVER_PORT:-22020}
 WEB_SERVER_PROTOCOL=${WEB_SERVER_PROTOCOL:-udp}
 WEB_DEFAULT_API_HOST=${WEB_DEFAULT_API_HOST:-http://127.0.0.1:$WEB_API_PORT}
 WEB_GEOIP_PATH=${WEB_GEOIP_PATH:-}
-WEB_LOG_LEVEL=${WEB_LOG_LEVEL:-error}
-CORE_LOG_LEVEL=${CORE_LOG_LEVEL:-error}
+WEB_LOG_LEVEL=${WEB_LOG_LEVEL:-}
+CORE_LOG_LEVEL=${CORE_LOG_LEVEL:-}
 WEB_DATA_DIR=/app/data/web
 WEB_LOG_DIR=/app/data/logs-web
 CORE_LOG_DIR=/app/data/logs-core
@@ -50,13 +50,17 @@ start_web() {
 
   WEB_ARGS=(
     -d "$WEB_DATA_DIR/et.db"
-    --file-log-level "$WEB_LOG_LEVEL"
     --file-log-dir "$WEB_LOG_DIR"
     -c "$WEB_SERVER_PORT"
     -a "$WEB_PORT"
     -p "$WEB_SERVER_PROTOCOL"
     --api-host "$API_URL"
   )
+
+  if [ -n "$WEB_LOG_LEVEL" ]; then
+    WEB_ARGS+=(--file-log-level "$WEB_LOG_LEVEL")
+  fi
+
 
   if [ -n "$WEB_GEOIP_PATH" ]; then
     WEB_ARGS+=("--geoip-db" "$WEB_GEOIP_PATH")
@@ -65,6 +69,7 @@ start_web() {
   if [ "$WEB_ENABLE_REGISTRATION" = "false" ]; then
     WEB_ARGS+=(--disable-registration)
   fi
+
   log "[Web] Executing command: $(format_cmd easytier-web-embed "${WEB_ARGS[@]}")"
 
   easytier-web-embed "${WEB_ARGS[@]}" &
@@ -79,12 +84,17 @@ start_core() {
   mkdir -p "$CORE_LOG_DIR" "$CONFIG_DIR"
 
   CORE_ARGS=(
-    --console-log-level "$CORE_LOG_LEVEL"
-    --file-log-level "$CORE_LOG_LEVEL"
     --file-log-dir "$CORE_LOG_DIR"
     --file-log-size 30
     --file-log-count 5
   )
+
+  if [ -n "$CORE_LOG_LEVEL" ]; then
+    CORE_ARGS+=(    
+      --console-log-level "$CORE_LOG_LEVEL"
+      --file-log-level "$CORE_LOG_LEVEL"
+    )
+  fi
 
   if [ -n "$HOSTNAME" ]; then
     CORE_ARGS+=("--hostname" "$HOSTNAME")

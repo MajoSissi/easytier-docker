@@ -60,18 +60,21 @@ services:
       # 默认: udp - 可选: [udp | tcp | ws]
       - WEB_SERVER_PROTOCOL=udp
       # -------------------------------------------
-      # Web 服务日志级别 
-      # 默认: error - 可选: [off | error | warn | info | debug | trace] 
-      - WEB_LOG_LEVEL=error
-      # -------------------------------------------
-      # Core 服务日志级别
-      # 默认: error - 可选: [ error | warn | info | debug | trace]
-      - CORE_LOG_LEVEL=error
-      # -------------------------------------------
       # GeoIP 数据库文件路径 (可在 Web 控制台显示地理位置信息)
       # 推荐: https://github.com/P3TERX/GeoLite.mmdb/releases (建议放到放到映射的目录 ./data/web 下, 记得更改对应文件名称/路径)
       # 默认: 无
       # - WEB_GEOIP_PATH=/app/data/web/GeoLite2-City.mmdb
+      # -------------------------------------------
+      # Web 服务日志级别
+      # 可选: [ error | warn | info | debug | trace] 
+      # 默认: 无  (跟随程序默认行为)
+      # - WEB_LOG_LEVEL=info
+      # -------------------------------------------
+      # Core 服务日志级别
+      # 可选: [ error | warn | info | debug | trace] 
+      # 默认: 无  (跟随程序默认行为)
+      # - CORE_LOG_LEVEL=info
+
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -79,4 +82,5 @@ services:
       - /dev/net/tun:/dev/net/tun
     volumes:
       - ./data:/app/data
-      # 将写好的配置文件放在 ./data/config 下每个文件都是一个实例(.toml格式), 会跟着容器一起启动/运行
+      # 将写好的配置文件放在 ./data/config 下每个文件都是一个实例 (.toml格式)
+      # 会跟着容器一起启动/运行, Web 上可见, 可编辑
