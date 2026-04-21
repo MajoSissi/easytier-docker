@@ -26,10 +26,20 @@ log() {
 format_cmd() {
   local cmd=$1
   shift || true
-  printf '%s' "$cmd"
+  printf '\n|%s' "$cmd"
   local arg
-  for arg in "$@"; do
-    printf ' %q' "$arg"
+  local next
+  while [ $# -gt 0 ]; do
+    arg=$1
+    shift
+    # 检查下一个参数是否是选项（以-开头）
+    if [[ $# -gt 0 && ! $1 =~ ^- ]]; then
+      next=$1
+      shift
+      printf '\n|  %q %q' "$arg" "$next"
+    else
+      printf '\n|  %q' "$arg"
+    fi
   done
 }
 
@@ -48,12 +58,13 @@ start_web() {
   
   log "[Web] Using API URL: $API_URL"
 
+  WEB_BIN="easytier-web-embed"
   WEB_ARGS=(
-    -d "$WEB_DATA_DIR/et.db"
+    --db "$WEB_DATA_DIR/et.db"
     --file-log-dir "$WEB_LOG_DIR"
-    -c "$WEB_SERVER_PORT"
-    -a "$WEB_PORT"
-    -p "$WEB_SERVER_PROTOCOL"
+    --config-server-protocol "$WEB_SERVER_PROTOCOL"
+    --config-server-port "$WEB_SERVER_PORT"
+    --api-server-port "$WEB_PORT"
     --api-host "$API_URL"
   )
 
@@ -70,12 +81,12 @@ start_web() {
     WEB_ARGS+=(--disable-registration)
   fi
 
-  log "[Web] Executing command: $(format_cmd easytier-web-embed "${WEB_ARGS[@]}")"
+  log "[Web] Executing command: $(format_cmd $WEB_BIN "${WEB_ARGS[@]}")"
 
-  easytier-web-embed "${WEB_ARGS[@]}" &
+  $WEB_BIN "${WEB_ARGS[@]}" &
 
   WEB_PID=$!
-  log "[Web] easytier-web-embed started with PID $WEB_PID"
+  log "[Web] $WEB_BIN started with PID $WEB_PID"
 }
 
 start_core() {
@@ -83,6 +94,7 @@ start_core() {
   # Ensure directories exist
   mkdir -p "$CORE_LOG_DIR" "$CONFIG_DIR"
 
+  CORE_BIN="easytier-core"
   CORE_ARGS=(
     --file-log-dir "$CORE_LOG_DIR"
     --file-log-size 30
@@ -104,10 +116,10 @@ start_core() {
     CORE_ARGS+=("--config-dir" "$CONFIG_DIR")
     if [ -n "$WEB_REMOTE_API" ]; then
         # If WEB_REMOTE_API is set, use it directly
-        CORE_ARGS+=("-w" "$WEB_REMOTE_API")
+        CORE_ARGS+=("--config-server" "$WEB_REMOTE_API")
     elif [ -n "$WEB_USERNAME" ]; then
         # Otherwise, use WEB_USERNAME if set
-        CORE_ARGS+=("-w" "$WEB_SERVER_PROTOCOL://127.0.0.1:$WEB_SERVER_PORT/$WEB_USERNAME")
+        CORE_ARGS+=("--config-server" "$WEB_SERVER_PROTOCOL://127.0.0.1:$WEB_SERVER_PORT/$WEB_USERNAME")
     fi
   fi
 
@@ -119,13 +131,12 @@ start_core() {
         cat /proc/sys/kernel/random/uuid > "$MACHINE_ID_FILE"
     fi
     MACHINE_ID=$(cat "$MACHINE_ID_FILE")
-    log "[Core] Using machine ID: $MACHINE_ID"
     CORE_ARGS+=("--machine-id" "$MACHINE_ID")
   fi
 
-  log "[Core] Executing command: $(format_cmd easytier-core "${CORE_ARGS[@]}")"
+  log "[Core] Executing command: $(format_cmd $CORE_BIN "${CORE_ARGS[@]}")"
 
-  exec easytier-core "${CORE_ARGS[@]}"
+  exec $CORE_BIN "${CORE_ARGS[@]}"
 }
 
 # Custom entrypoint command
