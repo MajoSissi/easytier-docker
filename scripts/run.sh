@@ -1,8 +1,11 @@
 #!/bin/bash
 set -e
 
-# Default values
+# Core
 HOSTNAME=${HOSTNAME:-}
+CORE_LOG_LEVEL=${CORE_LOG_LEVEL:-}
+
+# Web
 WEB_ENABLE=${WEB_ENABLE:-false}
 WEB_REMOTE_API=${WEB_REMOTE_API:-}
 WEB_ENABLE_REGISTRATION=${WEB_ENABLE_REGISTRATION:-false}
@@ -13,7 +16,8 @@ WEB_SERVER_PROTOCOL=${WEB_SERVER_PROTOCOL:-udp}
 WEB_DEFAULT_API_HOST=${WEB_DEFAULT_API_HOST:-http://127.0.0.1:$WEB_API_PORT}
 WEB_GEOIP_PATH=${WEB_GEOIP_PATH:-}
 WEB_LOG_LEVEL=${WEB_LOG_LEVEL:-}
-CORE_LOG_LEVEL=${CORE_LOG_LEVEL:-}
+
+# Data and log directories
 WEB_DATA_DIR=/app/data/web
 WEB_LOG_DIR=/app/data/logs-web
 CORE_LOG_DIR=/app/data/logs-core
@@ -32,7 +36,6 @@ format_cmd() {
   while [ $# -gt 0 ]; do
     arg=$1
     shift
-    # 检查下一个参数是否是选项（以-开头）
     if [[ $# -gt 0 && ! $1 =~ ^- ]]; then
       next=$1
       shift
@@ -68,18 +71,11 @@ start_web() {
     --api-host "$API_URL"
   )
 
-  if [ -n "$WEB_LOG_LEVEL" ]; then
-    WEB_ARGS+=(--file-log-level "$WEB_LOG_LEVEL")
-  fi
+  [ -n "$WEB_LOG_LEVEL" ] && WEB_ARGS+=(--file-log-level "$WEB_LOG_LEVEL")
 
+  [ -n "$WEB_GEOIP_PATH" ] && WEB_ARGS+=("--geoip-db" "$WEB_GEOIP_PATH")
 
-  if [ -n "$WEB_GEOIP_PATH" ]; then
-    WEB_ARGS+=("--geoip-db" "$WEB_GEOIP_PATH")
-  fi
-
-  if [ "$WEB_ENABLE_REGISTRATION" = "false" ]; then
-    WEB_ARGS+=(--disable-registration)
-  fi
+  [ "$WEB_ENABLE_REGISTRATION" = "false" ] && WEB_ARGS+=(--disable-registration)
 
   log "[Web] Executing command: $(format_cmd $WEB_BIN "${WEB_ARGS[@]}")"
 
@@ -101,16 +97,12 @@ start_core() {
     --file-log-count 5
   )
 
-  if [ -n "$CORE_LOG_LEVEL" ]; then
-    CORE_ARGS+=(    
-      --console-log-level "$CORE_LOG_LEVEL"
-      --file-log-level "$CORE_LOG_LEVEL"
-    )
-  fi
+  [ -n "$CORE_LOG_LEVEL" ] && CORE_ARGS+=(
+    --console-log-level "$CORE_LOG_LEVEL" 
+    --file-log-level "$CORE_LOG_LEVEL"
+  )
 
-  if [ -n "$HOSTNAME" ]; then
-    CORE_ARGS+=("--hostname" "$HOSTNAME")
-  fi
+  [ -n "$HOSTNAME" ] && CORE_ARGS+=("--hostname" "$HOSTNAME")
 
   if [ "$WEB_ENABLE" = "true" ]; then
     CORE_ARGS+=("--config-dir" "$CONFIG_DIR")
