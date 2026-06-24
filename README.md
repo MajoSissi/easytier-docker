@@ -69,7 +69,8 @@ services:
       - WEB_SERVER_PORT=22020
       # -------------------------------------------
       # Web 管理服务 (RPC) 协议, 可与其他节点的 -w 参数保持一致
-      # 默认: udp - 可选: [udp | tcp | ws]
+      # 可选: [ udp | tcp | ws ]
+      # 默认: udp
       - WEB_SERVER_PROTOCOL=udp
       # -------------------------------------------
       # GeoIP 数据库文件路径 (可在 Web 控制台显示地理位置信息)
@@ -86,7 +87,6 @@ services:
       # 可选: [ error | warn | info | debug | trace] 
       # 默认: 无  (跟随程序默认行为)
       # - CORE_LOG_LEVEL=info
-
     cap_add:
       - NET_ADMIN
       - NET_RAW
