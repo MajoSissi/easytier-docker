@@ -6,7 +6,7 @@
 
 [EasyTier](https://github.com/EasyTier/EasyTier) 发布新版本时，自动构建并发布 Docker 镜像
 
-## Compose
+## [Compose](https://github.com/MajoSissi/easytier-docker/blob/main/compose/docker-compose.yaml)
 
 <!-- BEGIN_COMPOSE_CORE -->
 ```yaml
