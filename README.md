@@ -68,7 +68,7 @@ services:
       # 默认: 22020
       - WEB_SERVER_PORT=22020
       # -------------------------------------------
-      # Web 管理服务 (RPC) 协议, 可与其他节点的 -w 参数保持一致
+      # 监听配置服务器协议 core 将通过此协议连接 Web 服务
       # 可选: [ udp | tcp | ws ]
       # 默认: udp
       - WEB_SERVER_PROTOCOL=udp
