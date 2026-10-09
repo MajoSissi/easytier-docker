@@ -37,7 +37,7 @@ services:
       # - HOSTNAME=node1
       # -------------------------------------------
       # 连接其他远程 Web 控制台
-      # 设置后会忽略 WEB_USERNAME, 不可同时连接多个 Web, 但仍可启用本地控制台
+      # 设置后会忽略 WEB_USERNAME (不连接本地控制台), 不可同时连接多个 Web, 但仍可启用本地控制台
       # 示例: udp://api.web.com:22020/username
       # 默认: 无
       # - WEB_REMOTE_API=协议://主机:端口/用户名
