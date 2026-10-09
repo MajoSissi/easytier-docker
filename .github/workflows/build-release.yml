@@ -3,14 +3,18 @@ name: EasyTier Release Docker Image
 #  `DOCKERHUB_TOKEN`: DockerHub Access Token
 
 on:
-  schedule:
-    - cron: '0 0 * * *'
   workflow_dispatch:
     inputs:
       custom_docker_tag:
         description: '自定义镜像版本标签（可选，不填则默认为 "latest"）'
         required: false
         default: ''
+  push:
+    paths:
+      - 'docker/**'
+      - 'scripts/**'
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
   check-and-build:
@@ -32,8 +36,8 @@ jobs:
       - name: Check if version changed
         id: check_version
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "Manual trigger detected. Forcing build."
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] || [ "${{ github.event_name }}" == "push" ]; then
+            echo "Manual or relevant file change detected. Forcing build."
             echo "build=true" >> $GITHUB_OUTPUT
             exit 0
           fi

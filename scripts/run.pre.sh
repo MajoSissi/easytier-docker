@@ -13,7 +13,6 @@ WEB_USERNAME=${WEB_USERNAME:-}
 WEB_PORT=${WEB_PORT:-11211}
 WEB_SERVER_PORT=${WEB_SERVER_PORT:-22020}
 WEB_SERVER_PROTOCOL=${WEB_SERVER_PROTOCOL:-udp}
-WEB_DEFAULT_API_HOST=${WEB_DEFAULT_API_HOST:-http://127.0.0.1:$WEB_PORT}
 WEB_GEOIP_PATH=${WEB_GEOIP_PATH:-}
 WEB_LOG_LEVEL=${WEB_LOG_LEVEL:-}
 
@@ -50,17 +49,7 @@ start_web() {
   log "[Web] Starting easytier-web-embed..."
   # Ensure directories exist
   mkdir -p "$WEB_DATA_DIR" "$WEB_LOG_DIR"
-
-  # Get API URL
-  if [[ "$WEB_DEFAULT_API_HOST" == http* ]]; then
-    API_URL="$WEB_DEFAULT_API_HOST"
-  else
-    # Assume it's just an IP/Host, append port and scheme
-    API_URL="http://$WEB_DEFAULT_API_HOST:$WEB_PORT"
-  fi
   
-  log "[Web] Using API URL: $API_URL"
-
   WEB_BIN="easytier-web-embed"
   WEB_ARGS=(
     --db "$WEB_DATA_DIR/et.db"
@@ -68,7 +57,6 @@ start_web() {
     --config-server-protocol "$WEB_SERVER_PROTOCOL"
     --config-server-port "$WEB_SERVER_PORT"
     --api-server-port "$WEB_PORT"
-    --api-host "$API_URL"
   )
 
   [ -n "$WEB_LOG_LEVEL" ] && WEB_ARGS+=(--file-log-level "$WEB_LOG_LEVEL")
