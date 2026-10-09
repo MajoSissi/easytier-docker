@@ -2,7 +2,6 @@
 
 [![Release](https://github.com/MajoSissi/easytier-docker/actions/workflows/build-release.yml/badge.svg)](https://github.com/MajoSissi/easytier-docker/actions/workflows/build-release.yml)
 [![Pre-release](https://github.com/MajoSissi/easytier-docker/actions/workflows/build-pre.yml/badge.svg)](https://github.com/MajoSissi/easytier-docker/actions/workflows/build-pre.yml)
-[![CI](https://github.com/MajoSissi/easytier-docker/actions/workflows/build-ci.yml/badge.svg)](https://github.com/MajoSissi/easytier-docker/actions/workflows/build-ci.yml)
 
 [EasyTier](https://github.com/EasyTier/EasyTier) 发布新版本时，自动构建并发布 Docker 镜像
 
@@ -16,7 +15,6 @@ services:
   easytier:
     # majosissi/easytier:latest  最新 Release 正式版
     # majosissi/easytier:pre     最新 Pre-release 预览版
-    # majosissi/easytier:ci      最新 Action 构建版 (合并主线的版本, 自动更新, 稳定性不保证)
     image: majosissi/easytier:latest
     container_name: easytier
     restart: always
