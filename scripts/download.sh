@@ -4,6 +4,9 @@ set -e
 VERSION=$1
 TARGETARCH=$2
 TARGETVARIANT=$3
+# 用于压缩包文件名的版本号, 默认与 VERSION 相同
+# nightly 等 tag 与文件名版本号不一致的场景需要单独传入 (如 tag=nightly, 文件名为 ...-v2.7.0.zip)
+FILE_VERSION=${4:-$VERSION}
 
 if [ -z "$VERSION" ]; then
   echo "Version is required"
@@ -33,7 +36,7 @@ esac
 
 echo "Downloading EasyTier $VERSION for $ARCH..."
 # URL pattern: https://github.com/EasyTier/EasyTier/releases/download/v2.4.5/easytier-linux-x86_64-v2.4.5.zip
-URL="https://github.com/EasyTier/EasyTier/releases/download/${VERSION}/easytier-linux-${ARCH}-${VERSION}.zip"
+URL="https://github.com/EasyTier/EasyTier/releases/download/${VERSION}/easytier-linux-${ARCH}-${FILE_VERSION}.zip"
 
 echo "URL: $URL"
 curl -L -o easytier.zip "$URL"

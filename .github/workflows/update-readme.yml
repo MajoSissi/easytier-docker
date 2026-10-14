@@ -4,8 +4,7 @@ on:
   push:
     paths:
       - 'compose/docker-compose.yaml'
-
-      - 'scripts/generate_readme.sh'
+      - 'tools/generate_readme.sh'
       - 'README.md'
   workflow_dispatch:
 
@@ -21,8 +20,8 @@ jobs:
 
       - name: Update README.md
         run: |
-          chmod +x scripts/generate_readme.sh
-          ./scripts/generate_readme.sh compose/docker-compose.yaml --update README.md --marker COMPOSE_CORE
+          chmod +x tools/generate_readme.sh
+          ./tools/generate_readme.sh compose/docker-compose.yaml --update README.md --marker COMPOSE_CORE
 
 
       - name: Check for changes commit and push

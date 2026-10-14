@@ -29,7 +29,11 @@ jobs:
       - name: Get latest release version
         id: get_version
         run: |
-          LATEST_TAG=$(curl -s https://api.github.com/repos/EasyTier/EasyTier/releases | jq -r '.[] | select(.prerelease==true) | .tag_name' | head -n 1)
+          LATEST_TAG=$(curl -s https://api.github.com/repos/EasyTier/EasyTier/releases | jq -r '.[] | select(.prerelease==true and .tag_name != "nightly") | .tag_name' | head -n 1)
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No prerelease tag (excluding nightly) found." >&2
+            exit 1
+          fi
           echo "Latest tag: $LATEST_TAG"
           echo "version_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
           echo "version_number=${LATEST_TAG#v}" >> $GITHUB_OUTPUT
