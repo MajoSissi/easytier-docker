@@ -3,8 +3,9 @@ set -e
 
 # Core
 HOSTNAME=${HOSTNAME:-}
+SECURE_MODE=${SECURE_MODE:-false}
+WEB_REMOTE_SERVER=${WEB_REMOTE_SERVER:-}
 CORE_LOG_LEVEL=${CORE_LOG_LEVEL:-}
-WEB_REMOTE_API=${WEB_REMOTE_API:-}
 
 # Web
 WEB_ENABLE=${WEB_ENABLE:-false}
@@ -18,8 +19,8 @@ WEB_LOG_LEVEL=${WEB_LOG_LEVEL:-}
 
 # Data and log directories
 WEB_DATA_DIR=/app/data/web
-WEB_LOG_DIR=/app/data/logs-web
-CORE_LOG_DIR=/app/data/logs-core
+WEB_LOG_DIR=/app/logs/web
+CORE_LOG_DIR=/app/logs/core
 CONFIG_DIR=/app/data/config
 
 log() {
@@ -80,6 +81,7 @@ start_core() {
 
   CORE_BIN="easytier-core"
   CORE_ARGS=(
+    --secure-mode=$SECURE_MODE
     --file-log-dir "$CORE_LOG_DIR"
     --file-log-size 30
     --file-log-count 5
@@ -92,19 +94,19 @@ start_core() {
 
   [ -n "$HOSTNAME" ] && CORE_ARGS+=("--hostname" "$HOSTNAME")
 
-  if [ "$WEB_ENABLE" = "true" ] || [ -n "$WEB_REMOTE_API" ]; then
+  if [ "$WEB_ENABLE" = "true" ] || [ -n "$WEB_REMOTE_SERVER" ]; then
     CORE_ARGS+=("--config-dir" "$CONFIG_DIR")
-    if [ -n "$WEB_REMOTE_API" ]; then
-        # If WEB_REMOTE_API is set, use it directly
-        CORE_ARGS+=("--config-server" "$WEB_REMOTE_API")
+    if [ -n "$WEB_REMOTE_SERVER" ]; then
+        # If WEB_REMOTE_SERVER is set, use it directly
+        CORE_ARGS+=("--config-server" "$WEB_REMOTE_SERVER")
     elif [ "$WEB_ENABLE" = "true" ] && [ -n "$WEB_USERNAME" ]; then
         # Otherwise, use WEB_USERNAME if set
         CORE_ARGS+=("--config-server" "$WEB_SERVER_PROTOCOL://127.0.0.1:$WEB_SERVER_PORT/$WEB_USERNAME")
     fi
   fi
 
-  # Add machine ID if WEB_ENABLE is true or WEB_REMOTE_API is set
-  if [ "$WEB_ENABLE" = "true" ] || [ -n "$WEB_REMOTE_API" ]; then
+  # Add machine ID if WEB_ENABLE is true or WEB_REMOTE_SERVER is set
+  if [ "$WEB_ENABLE" = "true" ] || [ -n "$WEB_REMOTE_SERVER" ]; then
     MACHINE_ID_FILE="$WEB_DATA_DIR/et_machine_id"
     if [ ! -f "$MACHINE_ID_FILE" ]; then
         log "[Core] Generating new machine ID..."
@@ -128,7 +130,7 @@ if [ "$#" -gt 0 ]; then
 fi
 
 # Web
-if [ -n "$WEB_REMOTE_API" ]; then
+if [ -n "$WEB_REMOTE_SERVER" ]; then
   log "[Web] Connecting to another Web console; local console is disabled."
 elif [ "$WEB_ENABLE" = "true" ]; then
   start_web

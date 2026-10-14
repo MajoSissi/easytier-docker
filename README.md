@@ -37,7 +37,7 @@ services:
       # 连接其他远程 Web 控制台, 将强制禁用本地 Web 控制台 !!!暂不支持连接EasyTier Pro控制台
       # 示例: udp://api.web.com:22020/username
       # 默认: 无
-      # - WEB_REMOTE_API=协议://主机:端口/用户名
+      # - WEB_REMOTE_SERVER=协议://主机:端口/用户名
       # -------------------------------------------
       # 是否启用 Web 管理界面 
       # 默认: false
@@ -47,7 +47,7 @@ services:
       # 默认: false
       - WEB_ENABLE_REGISTRATION=false
       # -------------------------------------------
-      # Web 管理用户名; 设置 WEB_REMOTE_API 时此项无效
+      # Web 管理用户名; 设置 WEB_REMOTE_SERVER 时此项无效
       # 启用 Web 且提供用户名时将自动连接本地控制台
       # 自定义用户名，需要先手动注册对应用户名才行 
       # 默认: 无

@@ -15,7 +15,7 @@ RUN apk add --no-cache --virtual .dl-deps curl unzip && \
 
 COPY --chmod=755 scripts/run.sh /run.sh
 
-RUN mkdir -p /app/data/config /app/data/web /app/data/logs-web /app/data/logs-core
+RUN mkdir -p /app/data/config /app/data/web /app/logs/web /app/logs/core
 
 VOLUME /app/data
 
